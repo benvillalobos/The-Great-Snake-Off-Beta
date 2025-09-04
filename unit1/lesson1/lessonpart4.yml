@@ -1,0 +1,55 @@
+# yaml-language-server: $schema=https://vscodeedu.com/assets/schema/course-v2.schema.json
+id: lessonpart4
+title: The Hungry Serpent
+content: >
+  *The arena gates grind open, and a long, lean snake slithers out. Its scales
+  gleam like polished bronze, and its eyes lock greedily onto the food scattered
+  across the floor.*
+
+
+  **Hungry Serpent**\
+
+  Food! Glorious food! I’ll eat it all, every last bite! Nothing else matters!
+
+
+  *It cackles as it lunges for the nearest morsel, chomping without hesitation.*
+
+
+  **SnakeBot**\
+
+  (rolling its eyes) Great. A one-trick snake. Coach, you hear this clown? He’s
+  got one move — eat, eat, eat.
+
+
+  *SnakeBot turns serious, lowering its voice.*
+
+
+  **SnakeBot**\
+
+  Here’s where things get tricky. A simple prompt like “go for food” works fine…
+  until it doesn’t. Hungry Serpent is faster, reckless, and will always race me
+  to the snack. If we do the same thing, we’ll lose.
+
+
+  *It slams its tail against the ground for emphasis.*
+
+
+  **SnakeBot**\
+
+  That’s where prompt engineering comes in. You’ve gotta sharpen the whistle.
+  Don’t just say “eat food.” Say it smarter. More specific. Trial and error,
+  until you find the words that make me act just right.
+
+
+  *The Hungry Serpent lifts its head, crumbs of food still falling from its
+  jaws.*
+
+
+  **Hungry Serpent**\
+
+  You’ll never beat me! If it’s food on the field, it’s mine!
+
+
+  **SnakeBot**\
+
+  (smiling faintly) Coach, you ready to prove him wrong?
