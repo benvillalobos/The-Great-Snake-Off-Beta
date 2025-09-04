@@ -41,3 +41,11 @@ content: >
   So let’s train. Forget rival snakes for now. Just tell me: **“Go after
   food.”** That one prompt will get me moving. From there, we’ll get sharper,
   stronger, and smarter. Together.
+showEditor: true
+editors:
+  - course1/index.html
+  - course1/game.js
+  - course1/snake.js
+  - course1/systemPrompt.md
+  - course1/unit1/lesson1/lessonpart3/enemy-ai.js
+  - course1/unit1/lesson1/lessonpart3/player-ai.js
