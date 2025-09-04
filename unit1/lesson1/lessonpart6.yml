@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://vscodeedu.com/assets/schema/course-v2.schema.json
+id: lessonpart6
+title: The Poison Pit
+content: >
+  *The arena glows a sickly green as the gates creak open. A thin, sly snake
+  slithers out, leaving trails of glowing mist. All around, strange food appears
+  — some fresh and ripe, others dark and spoiled.*
+
+
+  **Poison Pit Snake**\
+
+  Heheheh… hungry, are we? Too bad you can’t tell the feast from the poison. Eat
+  up, little fool.
+
+
+  *It scatters more tainted morsels across the floor, cackling gleefully.*
+
+
+  **SnakeBot**\
+
+  (disgusted) Ugh, you’ve got to be kidding me. I can’t tell what’s good or bad!
+  Coach, if I grab the wrong bite, I’m done for!
+
+
+  *SnakeBot coils anxiously, glaring at the pit of food.*
+
+
+  **SnakeBot**\
+
+  This is where things get advanced. A plain old “go for food” won’t cut it
+  anymore. You’ll need to tell me not just what to do… but what *not* to do.
+  That’s prompt engineering at a higher level.
+
+
+  *SnakeBot straightens suddenly, a glint in its eye.*
+
+
+  **SnakeBot**\
+
+  But wait — I can feel something new. A hidden ability. There’s an API I can
+  use to check the type of food. With the right prompt, you can tell me to use
+  it. Then I’ll know which bites are safe.
+
+
+  **Poison Pit Snake**\
+
+  (laughing wildly) You’ll never resist! The hungrier you get, the more tempting
+  it becomes!
+
+
+  **SnakeBot**\
+
+  (rolling its eyes) Coach, please. Don’t let me embarrass myself out there.
+  Tell me exactly how to avoid the bad stuff.
