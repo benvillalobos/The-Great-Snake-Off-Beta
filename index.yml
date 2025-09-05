@@ -1990,7 +1990,7 @@ files:
 
       \r
 
-      \  towardsFood(food) {\r
+      \  towardsFood() {\r
 
       \    return this.towards(food);\r
 
