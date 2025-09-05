@@ -5230,7 +5230,7 @@ files:
   - path: course1/unit1/lesson1/lessonpart4/enemy-ai.js
     content: "function enemyAI(enemy) { \r
 
-      \  let direction = enemy.towardsFood();\r
+      \  let direction = enemy.towardsClosestFood();\r
 
       \  return direction;\r
 
