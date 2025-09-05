@@ -8,7 +8,15 @@ contacts:
     pictureUrl: https://avatars.githubusercontent.com/u/4691428?v=4
     homePageUrl: https://github.com/benvillalobos
 files:
-  - path: course1/index.html
+  - path: course1/unit1/lesson1/lessonpart3/enemy-ai.js
+    content: "function enemyAI(enemy) {\r
+
+      \    return Direction.UP;\r
+
+      }\r
+
+      \r\n"
+  - path: course1/unit1/lesson1/lessonpart3/index.html
     content: "<!DOCTYPE html>\r
 
       <html lang=\"en\">\r
@@ -172,7 +180,7 @@ files:
       </body>\r
 
       </html>\r\n"
-  - path: course1/game.js
+  - path: course1/unit1/lesson1/lessonpart3/game.js
     content: "// p5.js game loop + world state + helper functions for AIs\r
 
       \r
@@ -202,6 +210,8 @@ files:
       let player, enemy;\r
 
       let food = { x: 0, y: 0 };\r
+
+      let foods = []; // Array of all foods, foods[0] should always be food\r
 
       let scoreEl;\r
 
@@ -233,6 +243,8 @@ files:
 
       \  food: { x: 0, y: 0 },\r
 
+      \  foods: [], // Array of all foods\r
+
       \  player: null,\r
 
       \  enemy: null,\r
@@ -258,6 +270,18 @@ files:
       \  maxMs: 1000,\r
 
       \  defaultScale: 1.0\r
+
+      };\r
+
+      \r
+
+      // ------ Food Configuration ------\r
+
+      const FOOD_CONFIG = {\r
+
+      \  count: 1,\r
+
+      \  color: '#22c55e'\r
 
       };\r
 
@@ -361,7 +385,7 @@ files:
 
       \  if (gamePaused) {\r
 
-      \    drawFood(food);\r
+      \    drawFood(foods);\r
 
       \    player.draw(this, GRID.cell);\r
 
@@ -380,7 +404,7 @@ files:
 
       \  if (gameOver) {\r
 
-      \    drawFood(food);\r
+      \    drawFood(foods);\r
 
       \    drawGameOver();\r
 
@@ -393,6 +417,8 @@ files:
       \  // Update global game object before running AIs\r
 
       \  game.food = food;\r
+
+      \  game.foods = foods;\r
 
       \  game.player = player;\r
 
@@ -408,7 +434,7 @@ files:
 
       \    if (playerDirection) {\r
 
-      \      player.go(playerDirection);\r
+      \      player.setDirection(playerDirection);\r
 
       \    }\r
 
@@ -420,7 +446,7 @@ files:
 
       \    if (enemyDirection) {\r
 
-      \      enemy.go(enemyDirection);\r
+      \      enemy.setDirection(enemyDirection);\r
 
       \    }\r
 
@@ -432,7 +458,7 @@ files:
 
       \  const now = millis();\r
 
-      \  const gameContext = { food, enemy, player, GRID };\r
+      \  const gameContext = { food, foods, enemy, player, GRID };\r
 
       \  const pRes = player.moveIfReady(now, gameContext);\r
 
@@ -462,15 +488,25 @@ files:
 
       \  if (pRes.ateFood || eRes.ateFood) {\r
 
-      \    if (pRes.ateFood) bumpScore(1);\r
+      \    if (pRes.ateFood) {\r
 
-      \    spawnFood();\r
+      \      bumpScore(1);\r
+
+      \      moveEatenFood(pRes.eatenFood);\r
+
+      \    }\r
+
+      \    if (eRes.ateFood) {\r
+
+      \      moveEatenFood(eRes.eatenFood);\r
+
+      \    }\r
 
       \  }\r
 
       \r
 
-      \  drawFood(food);\r
+      \  drawFood(foods);\r
 
       \  player.draw(this, GRID.cell);\r
 
@@ -578,7 +614,7 @@ files:
 
       \r
 
-      function spawnFood() {\r
+      function initializeFoods() {\r
 
       \  const occupied = new Set();\r
 
@@ -587,6 +623,95 @@ files:
       \  player.body.forEach(add);\r
 
       \  enemy.body.forEach(add);\r
+
+      \r
+
+      \  foods = []; // Clear existing foods\r
+
+      \  \r
+
+      \  for (let i = 0; i < FOOD_CONFIG.count; i++) {\r
+
+      \    let x, y, tries = 0;\r
+
+      \    do {\r
+
+      \      x = Math.floor(Math.random() * GRID.cols);\r
+
+      \      y = Math.floor(Math.random() * GRID.rows);\r
+
+      \      tries++;\r
+
+      \      if (tries > 500) { \r
+
+      \        // If we can't find a spot, just place it at (0,0) and break\r
+
+      \        foods.push({x: 0, y: 0});\r
+
+      \        break;\r
+
+      \      }\r
+
+      \    } while (occupied.has(`${x},${y}`));\r
+
+      \    \r
+
+      \    if (tries <= 500) {\r
+
+      \      const newFood = { x, y };\r
+
+      \      foods.push(newFood);\r
+
+      \      occupied.add(`${x},${y}`); // Mark this position as occupied for
+      next food\r
+
+      \    }\r
+
+      \  }\r
+
+      \  \r
+
+      \  // Set the first food as the primary food for backward compatibility\r
+
+      \  if (foods.length > 0) {\r
+
+      \    food = foods[0];\r
+
+      \  } else {\r
+
+      \    food = { x: 0, y: 0 };\r
+
+      \    foods = [food];\r
+
+      \  }\r
+
+      }\r
+
+      \r
+
+      function moveEatenFood(eatenFood) {\r
+
+      \  const occupied = new Set();\r
+
+      \  const add = (c) => occupied.add(`${c.x},${c.y}`);\r
+
+      \  player.body.forEach(add);\r
+
+      \  enemy.body.forEach(add);\r
+
+      \  \r
+
+      \  // Add all other foods to occupied positions\r
+
+      \  foods.forEach(f => {\r
+
+      \    if (f.x !== eatenFood.x || f.y !== eatenFood.y) {\r
+
+      \      occupied.add(`${f.x},${f.y}`);\r
+
+      \    }\r
+
+      \  });\r
 
       \r
 
@@ -600,11 +725,25 @@ files:
 
       \    tries++;\r
 
-      \    if (tries > 500) { food = {x: 0, y: 0}; return; }\r
+      \    if (tries > 500) { \r
+
+      \      // If we can't find a spot, just place it at (0,0)\r
+
+      \      eatenFood.x = 0;\r
+
+      \      eatenFood.y = 0;\r
+
+      \      return;\r
+
+      \    }\r
 
       \  } while (occupied.has(`${x},${y}`));\r
 
-      \  food = { x, y };\r
+      \  \r
+
+      \  eatenFood.x = x;\r
+
+      \  eatenFood.y = y;\r
 
       }\r
 
@@ -612,17 +751,43 @@ files:
 
       function drawFood(f) {\r
 
-      \  push();\r
+      \  // If f is an array, draw all foods\r
 
-      \  noStroke();\r
+      \  if (Array.isArray(f)) {\r
 
-      \  fill('#22c55e'); // Green for food\r
+      \    f.forEach(singleFood => {\r
 
-      \  const s = GRID.cell;\r
+      \      push();\r
 
-      \  rect(f.x * s, f.y * s, s, s, 4);\r
+      \      noStroke();\r
 
-      \  pop();\r
+      \      fill(FOOD_CONFIG.color); // Green for food\r
+
+      \      const s = GRID.cell;\r
+
+      \      rect(singleFood.x * s, singleFood.y * s, s, s, 4);\r
+
+      \      pop();\r
+
+      \    });\r
+
+      \  } else {\r
+
+      \    // Single food (backward compatibility)\r
+
+      \    push();\r
+
+      \    noStroke();\r
+
+      \    fill(FOOD_CONFIG.color); // Green for food\r
+
+      \    const s = GRID.cell;\r
+
+      \    rect(f.x * s, f.y * s, s, s, 4);\r
+
+      \    pop();\r
+
+      \  }\r
 
       }\r
 
@@ -1172,7 +1337,7 @@ files:
 
       \r
 
-      \  spawnFood();\r
+      \  initializeFoods();\r
 
       \  updatePauseButton();\r
 
@@ -1349,7 +1514,17 @@ files:
       \  }\r
 
       }\r\n"
-  - path: course1/snake.js
+  - path: course1/unit1/lesson1/lessonpart3/player-ai.js
+    content: "// To get started:\r
+
+      // 1. Open systemPrompt.md\r
+
+      // 2. Copy/paste into an LLM\r
+
+      // 3. Describe your strategy to the LLM\r
+
+      // 4. Copy/paste the generated code here"
+  - path: course1/unit1/lesson1/lessonpart3/snake.js
     content: "class Snake {\r
 
       \  /**\r
@@ -1571,20 +1746,20 @@ files:
 
       \r
 
-      \  /** Move one cell if stepMs elapsed; return {moved, ateFood, newHead}
-      */\r
+      \  /** Move one cell if stepMs elapsed; return {moved, ateFood, eatenFood,
+      newHead} */\r
 
       \  moveIfReady(nowMs, game) {\r
 
-      \    if (!this.alive) return { moved: false, ateFood: false, newHead: null
-      };\r
+      \    if (!this.alive) return { moved: false, ateFood: false, eatenFood:
+      null, newHead: null };\r
 
       \    if (nowMs - this._lastMove < this.stepMs) return { moved: false,
-      ateFood: false, newHead: null };\r
+      ateFood: false, eatenFood: null, newHead: null };\r
 
       \r
 
-      \    const { food } = game;\r
+      \    const { foods } = game;\r
 
       \r
 
@@ -1609,11 +1784,25 @@ files:
 
       \    let ateFood = false;\r
 
-      \    if (food && next.x === food.x && next.y === food.y) {\r
+      \    let eatenFood = null;\r
 
-      \      ateFood = true;\r
+      \    if (foods) {\r
 
-      \      this.growBy += 1;\r
+      \      for (const food of foods) {\r
+
+      \        if (next.x === food.x && next.y === food.y) {\r
+
+      \          ateFood = true;\r
+
+      \          eatenFood = food;\r
+
+      \          this.growBy += 1;\r
+
+      \          break;\r
+
+      \        }\r
+
+      \      }\r
 
       \    }\r
 
@@ -1635,7 +1824,7 @@ files:
 
       \    this._lastMove = nowMs;\r
 
-      \    return { moved: true, ateFood, newHead: next };\r
+      \    return { moved: true, ateFood, eatenFood, newHead: next };\r
 
       \  }\r
 
@@ -2093,7 +2282,7 @@ files:
       \  size() { return this.body.length; }\r
 
       }\r\n"
-  - path: course1/systemPrompt.md
+  - path: course1/unit1/lesson1/lessonpart3/systemPrompt.md
     content: "You are Snake AI Builder.\r
 
       \r
@@ -2400,23 +2589,5 @@ files:
       in SnakeBot's Dialogue.\r
 
       - Avoid logging redundant information"
-  - path: course1/unit1/lesson1/lessonpart3/enemy-ai.js
-    content: "function enemyAI(enemy) {\r
-
-      \    return Direction.UP;\r
-
-      }\r
-
-      \r\n"
-  - path: course1/unit1/lesson1/lessonpart3/player-ai.js
-    content: "// To get started:\r
-
-      // 1. Open systemPrompt.md\r
-
-      // 2. Copy/paste into an LLM\r
-
-      // 3. Describe your strategy to the LLM\r
-
-      // 4. Copy/paste the generated code here"
 units:
   - unit1/index.yml
