@@ -7847,13 +7847,15 @@ files:
 
       }\r\n"
   - path: course1/unit1/lesson1/lessonpart6/player-ai.js
-    content: "function playerAI(player) {\r
+    content: "function playerAI(player) { \r
 
-      \  const direction = player.towardsClosestFood();\r
+      \  // 1. Open systemPrompt.md\r
 
-      \  console.log(\"SnakeBot: Food spotted, I'm going for it!\");\r
+      \  // 2. Copy/paste into an LLM\r
 
-      \  return direction;\r
+      \  // 3. Write out your snake strategy\r
+
+      \  // 4. Copy/paste back here\r
 
       }\r\n"
   - path: course1/unit1/lesson1/lessonpart6/game.js
