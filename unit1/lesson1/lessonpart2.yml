@@ -1,21 +1,35 @@
 # yaml-language-server: $schema=https://vscodeedu.com/assets/schema/course-v2.schema.json
 id: lessonpart2
 title: 🤖 Meet SnakeBot
-content: >
+content: >+
   *The training grounds are quieter than the roaring arena. Stone pillars line
   the edges, and torches flicker in their brackets. From the shadows, a long,
-  digitally-scaled serpent slithers forward, eyes gleaming with confidence.*
+  digitally scaled serpent slithers forward, eyes gleaming with confidence.*
 
 
   **SnakeBot**\
 
-  Here’s the simple version: imagine I’m a super-powered snake that’s read more
-  books, websites, and stories than you could ever count. When you talk to me,
-  you’re giving me a *prompt*—that’s just a fancy word for instructions or
-  questions. I use everything I’ve “read” to figure out the best move.
+  “Alright, partner, before we dive into the strategy, let’s get one thing
+  straight. What am I, really? I’m not just a regular snake. I’m an AI, an
+  Artificial Intelligence! But not just any AI… I’m what’s called an LLM. That
+  stands for ‘Large Language Model.’ Sounds impressive, right?”
 
 
-  *It leans closer, lowering its voice like it’s sharing a secret.*
+  *Snakebot nods and winks multiple times.*
+
+
+  **SnakeBot**\
+
+  Here’s the simple version: imagine I’m a super-powered robot that’s read
+  ***millions*** of lines of code. But here’s the catch, I don’t actually know
+  *what to do* with all that knowledge. I’ve got a head full of strategies, but
+  without coaching, I'm coiled up doing nothing. That’s where you come in. When
+  you talk to me, you’re giving me a *prompt.* A *prompt* is just a fancy word
+  for instructions. Using your prompt, I do my best to write code that fits what
+  you asked for.
+
+
+  *SnakeBot coils proudly, flicking its tail like a salute.*
 
 
   **SnakeBot**\
@@ -23,15 +37,41 @@ content: >
   Think of it this way: if you had a robot buddy who could cook anything, you’d
   still have to tell it what recipe to make. The clearer the recipe, the better
   the dish. That’s how I work too—you give me the strategy, and I turn it into
-  action.
+  code.
 
 
-  *SnakeBot coils proudly, flicking its bandana tail like a salute.*
+  *SnakeBot straightens up, energy buzzing through its coils.*
 
 
   **SnakeBot**\
 
-  Oh, and one more thing—I’m not just any AI. I’m a special kind called an LLM.
-  Don’t worry, I’ll explain more soon. For now, just remember: you give the
-  plan, I do the slithering. Together, we might just survive this circus of
-  serpents.
+  Alright, enough talk, time to slither into the training arena!
+
+questionGroups:
+  - id: "1"
+    questions:
+      - id: "1"
+        type: string
+        content: What does LLM stand for?
+        options:
+          - id: "1"
+            value: Large Language Model
+            explanation: LLM stands for 'Large Language Model,' which is a type of AI
+              designed to process and generate human-like text.
+            isCorrect: true
+  - id: "2"
+    questions:
+      - id: "1"
+        type: multiple
+        content: What is an LLM like?
+        options:
+          - id: "1"
+            value: A super-powered robot that needs instructions to act.
+            explanation: An LLM requires prompts to utilize its knowledge effectively.
+            isCorrect: true
+          - id: "2"
+            value: A regular snake that acts on its own.
+            explanation: An LLM is not autonomous and needs guidance to perform tasks.
+          - id: "3"
+            value: Like a pizza order
+            explanation: ;)
