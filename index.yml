@@ -10419,5 +10419,144 @@ files:
       \  return direction;\r
 
       }\r\n"
+  - path: course1/unit1/lesson1/lessonpart9/failed.md
+    content: "### VB's\r
+
+      ```javascript\r
+
+      function playerAI(player) {\r
+
+      \  const gridCenter = {x: 10, y: 10};\r
+
+      \  const enemyClosestFood = game.enemy.getClosestFood();\r
+
+      \  const enemyDistanceToFood = game.enemy.distanceTo(enemyClosestFood);\r
+
+      \  const myDistanceToFood = player.distanceTo(player.getClosestFood());\r
+
+      \r
+
+      \  let direction;\r
+
+      \r
+
+      \  if (enemyDistanceToFood < myDistanceToFood) {\r
+
+      \    console.log(\"SnakeBot: Heading to the center, can't let the enemy
+      beat me!\");\r
+
+      \    direction = player.towards(gridCenter);\r
+
+      \  } else {\r
+
+      \    console.log(\"SnakeBot: Food is mine, full speed ahead!\");\r
+
+      \    direction = player.towardsClosestFood();\r
+
+      \  }\r
+
+      \r
+
+      \  if (player.willHitSelf(direction) || player.willHitEnemy(direction))
+      {\r
+
+      \    console.log(\"SnakeBot: Whoa, that was close! Finding a safer
+      path.\");\r
+
+      \    direction = player.randomSafeDirection();\r
+
+      \  }\r
+
+      \r
+
+      \  return direction;\r
+
+      }\r
+
+      ```\r
+
+      \r
+
+      \r
+
+      ### Ian's\r
+
+      ```javascript\r
+
+      function playerAI(player) { \r
+
+      \  let direction = player.towardsClosestFood();\r
+
+      \  const enemy = game.enemy;\r
+
+      \  const gridCenter = game.GRID.center;\r
+
+      \  const food = player.getClosestFood();\r
+
+      \r
+
+      \  if (player.willHitAnything(direction)) {\r
+
+      \    console.log(\"SnakeBot: Not crashing into walls, myself, or the
+      enemy!\");\r
+
+      \    direction = player.randomSafeDirection();\r
+
+      \  }\r
+
+      \r
+
+      \  if (player.distanceToWall(direction) <= 2) {\r
+
+      \    console.log(\"SnakeBot: Too close to the wall, steering clear!\");\r
+
+      \    direction = player.randomSafeDirection();\r
+
+      \  }\r
+
+      \r
+
+      \  const myDistance = player.distanceTo(food);\r
+
+      \  const enemyDistance = enemy.distanceTo(food);\r
+
+      \  if (enemyDistance <= myDistance) {\r
+
+      \    console.log(\"SnakeBot: Enemy's closer to food, I'm taking the
+      center!\");\r
+
+      \    direction = player.towards(gridCenter);\r
+
+      \  } else {\r
+
+      \    console.log(\"SnakeBot: Food looks safe, going for it!\");\r
+
+      \    direction = player.towardsClosestFood();\r
+
+      \  }\r
+
+      \r
+
+      \  return direction;\r
+
+      }\r
+
+      ```\r
+
+      \r
+
+      \r
+
+      \r
+
+      Ian feedback\r
+
+      ```\r
+
+      My prompt didn't seem to get that allFoods was an option (at least at the
+      first attempt). Only looked at closest food and checked if poison or
+      not.\r
+
+      ```"
 units:
   - unit1/index.yml
