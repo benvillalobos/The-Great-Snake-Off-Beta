@@ -2,45 +2,34 @@
 id: lessonpart3
 title: 💪 Training Mode
 content: >
-  *SnakeBot slithers back and forth across the training floor, its coils
-  twitching with restless energy.*
+  *SnakeBot cruises around the training arena, practicing.*
 
 
   **SnakeBot**\
 
-  Alright, coach, you know I’m AI. But here’s the important part: I’m an LLM — a
-  Large Language Model.
+  Alright, coach, since I’m an LLM, I can’t just make moves on my own. I need
+  your strategies, your prompts, so I can spin them into code. You give the
+  plan, I give the code.
 
 
-  *It flicks its tongue, proud of the title.*
-
-
-  **SnakeBot**\
-
-  Think of me as a giant library of word patterns. I don’t read the books or
-  understand the meaning — I just know which words usually come next. That’s my
-  power. With that, I can generate strategies, or even code, faster than you can
-  blink.
-
-
-  *SnakeBot coils into a loop and stares at you.*
+  *SnakeBot leans closer, lowering its voice like it’s sharing a secret.*
 
 
   **SnakeBot**\
 
-  But there’s a catch. I can’t start on my own. I need something from you first.
-  That something is called a prompt. A prompt is your instruction — your
-  whistle, your playbook. You say it, I try it. No prompt, no plan.
+  But… there’s something you should know. I don’t always get things right.
+  Sometimes I mess up without even realizing it. So, you’ll need to keep an eye
+  on me and double check my work.
 
 
-  *SnakeBot straightens, voice rising in mock-heroic tone.*
+  *SnakeBot flicks its tongue nervously, then brightens again.*
 
 
   **SnakeBot**\
 
-  So let’s train. Forget rival snakes for now. Just tell me: **“Go after
-  food.”** That one prompt will get me moving. From there, we’ll get sharper,
-  stronger, and smarter. Together.
+  Let’s start simple. Try giving me the prompt: **Go after food.** Run the
+  simulation a few times and see what I do. If you’re curious, peek at the code
+  too! You’ll see my coils turning into lines of strategy.
 showEditor: true
 editors:
   - course1/index.html
