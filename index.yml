@@ -7838,8 +7838,8 @@ files:
 
       \  const playerDir = game.player.currentDirection();\r
 
-      \  const target = {x: playerHead.x + playerDir.x * 3, y: playerHead.y +
-      playerDir.y * 3};\r
+      \  const target = {x: playerHead.x + playerDir.x * 2, y: playerHead.y +
+      playerDir.y * 2};\r
 
       \  const dirToTarget = enemy.towards(target);\r
 
