@@ -181,11 +181,7 @@ files:
 
       </html>\r\n"
   - path: course1/unit1/lesson1/lessonpart3/game.js
-    content: "// p5.js game loop + world state + helper functions for AIs\r
-
-      \r
-
-      // ------ Grid & Canvas ------\r
+    content: "// ------ Grid & Canvas ------\r
 
       const GRID = {\r
 
@@ -222,6 +218,8 @@ files:
       let gameOver = false;\r
 
       let gamePaused = false;\r
+
+      let trainingMode = true; // Boolean flag to control training mode\r
 
       \r
 
@@ -389,7 +387,7 @@ files:
 
       \    player.draw(this, GRID.cell);\r
 
-      \    enemy.draw(this, GRID.cell);\r
+      \    if (enemy) enemy.draw(this, GRID.cell);\r
 
       \    drawPauseOverlay();\r
 
@@ -440,7 +438,7 @@ files:
 
       \  }\r
 
-      \  if (enemy.alive) {\r
+      \  if (enemy && enemy.alive) {\r
 
       \    const enemyDirection = window.enemyAI(enemy);\r
 
@@ -462,13 +460,14 @@ files:
 
       \  const pRes = player.moveIfReady(now, gameContext);\r
 
-      \  const eRes = enemy.moveIfReady(now, gameContext);\r
+      \  const eRes = enemy ? enemy.moveIfReady(now, gameContext) : { moved:
+      false, ateFood: false };\r
 
       \r
 
       \  // Capture frame when either snake moves\r
 
-      \  if (pRes.moved || eRes.moved) {\r
+      \  if (pRes.moved || (enemy && eRes.moved)) {\r
 
       \    captureGameState();\r
 
@@ -480,13 +479,13 @@ files:
 
       \  if (pRes.moved) checkCollisions(player, enemy, GRID);\r
 
-      \  if (eRes.moved) checkCollisions(enemy, player, GRID);\r
+      \  if (enemy && eRes.moved) checkCollisions(enemy, player, GRID);\r
 
       \r
 
       \  // Food handling & scoring\r
 
-      \  if (pRes.ateFood || eRes.ateFood) {\r
+      \  if (pRes.ateFood || (enemy && eRes.ateFood)) {\r
 
       \    if (pRes.ateFood) {\r
 
@@ -496,7 +495,7 @@ files:
 
       \    }\r
 
-      \    if (eRes.ateFood) {\r
+      \    if (enemy && eRes.ateFood) {\r
 
       \      moveEatenFood(eRes.eatenFood);\r
 
@@ -510,21 +509,31 @@ files:
 
       \  player.draw(this, GRID.cell);\r
 
-      \  enemy.draw(this, GRID.cell);\r
+      \  if (enemy) enemy.draw(this, GRID.cell);\r
 
       \r
 
       \  // Check end states\r
 
-      \  if (!player.alive || !enemy.alive) {\r
+      \  if (!player.alive || (enemy && !enemy.alive)) {\r
 
       \    gameOver = true;\r
 
-      \    if (player.alive && !enemy.alive) winner = player;\r
+      \    if (enemy) {\r
 
-      \    else if (enemy.alive && !player.alive) winner = enemy;\r
+      \      if (player.alive && !enemy.alive) winner = player;\r
 
-      \    else winner = null;\r
+      \      else if (enemy.alive && !player.alive) winner = enemy;\r
+
+      \      else winner = null;\r
+
+      \    } else {\r
+
+      \      // In training mode, there's no winner when game is over\r
+
+      \      winner = null;\r
+
+      \    }\r
 
       \  }\r
 
@@ -622,7 +631,7 @@ files:
 
       \  player.body.forEach(add);\r
 
-      \  enemy.body.forEach(add);\r
+      \  if (enemy) enemy.body.forEach(add);\r
 
       \r
 
@@ -697,7 +706,7 @@ files:
 
       \  player.body.forEach(add);\r
 
-      \  enemy.body.forEach(add);\r
+      \  if (enemy) enemy.body.forEach(add);\r
 
       \  \r
 
@@ -811,7 +820,7 @@ files:
 
       \    },\r
 
-      \    enemy: {\r
+      \    enemy: enemy ? {\r
 
       \      body: [...enemy.body.map(seg => ({...seg}))],\r
 
@@ -821,7 +830,7 @@ files:
 
       \      color: enemy.color\r
 
-      \    },\r
+      \    } : null,\r
 
       \    food: {...food},\r
 
@@ -954,23 +963,27 @@ files:
 
       \  \r
 
-      \  push();\r
+      \  if (frame.enemy) {\r
 
-      \  noStroke();\r
+      \    push();\r
 
-      \  fill(frame.enemy.color);\r
+      \    noStroke();\r
 
-      \  for (let i = 0; i < frame.enemy.body.length; i++) {\r
+      \    fill(frame.enemy.color);\r
 
-      \    const b = frame.enemy.body[i];\r
+      \    for (let i = 0; i < frame.enemy.body.length; i++) {\r
 
-      \    const r = i === 0 ? 6 : 3; // roundness hint: bigger on head\r
+      \      const b = frame.enemy.body[i];\r
 
-      \    rect(b.x * GRID.cell, b.y * GRID.cell, GRID.cell, GRID.cell, r);\r
+      \      const r = i === 0 ? 6 : 3; // roundness hint: bigger on head\r
+
+      \      rect(b.x * GRID.cell, b.y * GRID.cell, GRID.cell, GRID.cell, r);\r
+
+      \    }\r
+
+      \    pop();\r
 
       \  }\r
-
-      \  pop();\r
 
       }\r
 
@@ -1055,7 +1068,7 @@ files:
 
       \  }\r
 
-      \  if (!enemy.alive || winner === enemy) {\r
+      \  if (enemy && (!enemy.alive || winner === enemy)) {\r
 
       \    if (winner === enemy) {\r
 
@@ -1098,7 +1111,14 @@ files:
 
       \  \r
 
-      \  if (!player.alive && !enemy.alive) {\r
+      \  if (trainingMode) {\r
+
+      \    line1 = 'Training Complete';\r
+
+      \    line2 = player.alive ? '' : `SnakeBot
+      ${getDeathMessage(player.deathCause)}`;\r
+
+      \  } else if (!player.alive && !enemy.alive) {\r
 
       \    if (player.deathCause === 'head-to-head' && enemy.deathCause ===
       'head-to-head') {\r
@@ -1287,25 +1307,37 @@ files:
 
       \    size: 3,\r
 
-      \    direction: { x: 1, y: 0 }\r
+      \    direction: { x: 0, y: 0 }\r
 
       \  });\r
 
-      \  enemy = new Snake({\r
+      \  \r
 
-      \    id: 'enemy',\r
+      \  // Only create enemy when not in training mode\r
 
-      \    start: { x: 16, y: 10 },\r
+      \  if (!trainingMode) {\r
 
-      \    color: '#ef4444',\r
+      \    enemy = new Snake({\r
 
-      \    stepMs: scaleSpeed(SPEED_CONFIG.enemyBaseMs, scale),\r
+      \      id: 'enemy',\r
 
-      \    size: 3,\r
+      \      start: { x: 16, y: 10 },\r
 
-      \    direction: { x: -1, y: 0 }\r
+      \      color: '#ef4444',\r
 
-      \  });\r
+      \      stepMs: scaleSpeed(SPEED_CONFIG.enemyBaseMs, scale),\r
+
+      \      size: 3,\r
+
+      \      direction: { x: -1, y: 0 }\r
+
+      \    });\r
+
+      \  } else {\r
+
+      \    enemy = undefined; // Ensure enemy is undefined in training mode\r
+
+      \  }\r
 
       \r
 
@@ -1515,15 +1547,19 @@ files:
 
       }\r\n"
   - path: course1/unit1/lesson1/lessonpart3/player-ai.js
-    content: "// To get started:\r
+    content: "function playerAI(player) { \r
 
-      // 1. Open systemPrompt.md\r
+      \    // To get started:\r
 
-      // 2. Copy/paste into an LLM\r
+      \    // 1. Open systemPrompt.md\r
 
-      // 3. Describe your strategy to the LLM\r
+      \    // 2. Copy/paste into an LLM\r
 
-      // 4. Copy/paste the generated code here"
+      \    // 3. Describe your strategy to the LLM\r
+
+      \    // 4. Copy/paste the generated code here\r
+
+      }\r\n"
   - path: course1/unit1/lesson1/lessonpart3/snake.js
     content: "class Snake {\r
 
