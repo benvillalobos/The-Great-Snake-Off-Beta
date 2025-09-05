@@ -2812,7 +2812,7 @@ files:
 
       let food = { x: 0, y: 0 };\r
 
-      let foods = []; // Array of all foods, foods[0] should always be food\r
+      let allFood = []; // Array of all foods, foods[0] should always be food\r
 
       let scoreEl;\r
 
@@ -2904,9 +2904,13 @@ files:
 
       const FOOD_CONFIG = {\r
 
-      \  count: 1,\r
+      \  foodCount: 1,\r
 
-      \  color: '#22c55e'\r
+      \  poisonCount: 0,\r
+
+      \  foodColor: '#22c55e',\r
+
+      \  poisonColor: '#9333ea'\r
 
       };\r
 
@@ -2916,17 +2920,17 @@ files:
 
       const ENEMY_CONFIG = {\r
 
-      \  id: 'The Hungry Serpent',\r
+      \  id: 'Enemy',\r
 
       \  start: { x: 16, y: 10 },\r
 
       \  color: '#ef4444',\r
 
-      \  size: 3,\r
+      \  size: 8,\r
 
       \  direction: { x: -1, y: 0 },\r
 
-      \  baseMs: 150\r
+      \  baseMs: 200\r
 
       };\r
 
@@ -2937,6 +2941,8 @@ files:
       window.PLAYER_CONFIG = PLAYER_CONFIG;\r
 
       window.ENEMY_CONFIG = ENEMY_CONFIG;\r
+
+      window.FOOD_CONFIG = FOOD_CONFIG;\r
 
       \r
 
@@ -3038,7 +3044,7 @@ files:
 
       \  if (gamePaused) {\r
 
-      \    drawFood(foods);\r
+      \    drawFood(allFood);\r
 
       \    player.draw(this, GRID.cell);\r
 
@@ -3057,7 +3063,7 @@ files:
 
       \  if (gameOver) {\r
 
-      \    drawFood(foods);\r
+      \    drawFood(allFood);\r
 
       \    drawGameOver();\r
 
@@ -3071,7 +3077,7 @@ files:
 
       \  game.food = food;\r
 
-      \  game.foods = foods;\r
+      \  game.foods = allFood;\r
 
       \  game.player = player;\r
 
@@ -3111,7 +3117,7 @@ files:
 
       \  const now = millis();\r
 
-      \  const gameContext = { food, foods, enemy, player, GRID };\r
+      \  const gameContext = { food, foods: allFood, enemy, player, GRID };\r
 
       \  const pRes = player.moveIfReady(now, gameContext);\r
 
@@ -3144,7 +3150,13 @@ files:
 
       \    if (pRes.ateFood) {\r
 
-      \      bumpScore(1);\r
+      \      // Only increase score for regular food, not poison\r
+
+      \      if (!pRes.atePoison) {\r
+
+      \        bumpScore(1);\r
+
+      \      }\r
 
       \      moveEatenFood(pRes.eatenFood);\r
 
@@ -3160,7 +3172,7 @@ files:
 
       \r
 
-      \  drawFood(foods);\r
+      \  drawFood(allFood);\r
 
       \  player.draw(this, GRID.cell);\r
 
@@ -3290,11 +3302,13 @@ files:
 
       \r
 
-      \  foods = []; // Clear existing foods\r
+      \  allFood = []; // Clear existing foods\r
 
       \  \r
 
-      \  for (let i = 0; i < FOOD_CONFIG.count; i++) {\r
+      \  // Add regular food items\r
+
+      \  for (let i = 0; i < FOOD_CONFIG.foodCount; i++) {\r
 
       \    let x, y, tries = 0;\r
 
@@ -3310,7 +3324,7 @@ files:
 
       \        // If we can't find a spot, just place it at (0,0) and break\r
 
-      \        foods.push({x: 0, y: 0});\r
+      \        allFood.push({x: 0, y: 0, type: 'food'});\r
 
       \        break;\r
 
@@ -3322,9 +3336,52 @@ files:
 
       \    if (tries <= 500) {\r
 
-      \      const newFood = { x, y };\r
+      \      const newFood = { x, y, type: 'food' };\r
 
-      \      foods.push(newFood);\r
+      \      allFood.push(newFood);\r
+
+      \      occupied.add(`${x},${y}`); // Mark this position as occupied for
+      next food\r
+
+      \    }\r
+
+      \  }\r
+
+      \  \r
+
+      \  // Add poison items\r
+
+      \  for (let i = 0; i < FOOD_CONFIG.poisonCount; i++) {\r
+
+      \    let x, y, tries = 0;\r
+
+      \    do {\r
+
+      \      x = Math.floor(Math.random() * GRID.cols);\r
+
+      \      y = Math.floor(Math.random() * GRID.rows);\r
+
+      \      tries++;\r
+
+      \      if (tries > 500) { \r
+
+      \        // If we can't find a spot, just place it at (0,0) and break\r
+
+      \        allFood.push({x: 0, y: 0, type: 'poison'});\r
+
+      \        break;\r
+
+      \      }\r
+
+      \    } while (occupied.has(`${x},${y}`));\r
+
+      \    \r
+
+      \    if (tries <= 500) {\r
+
+      \      const newFood = { x, y, type: 'poison' };\r
+
+      \      allFood.push(newFood);\r
 
       \      occupied.add(`${x},${y}`); // Mark this position as occupied for
       next food\r
@@ -3337,15 +3394,15 @@ files:
 
       \  // Set the first food as the primary food for backward compatibility\r
 
-      \  if (foods.length > 0) {\r
+      \  if (allFood.length > 0) {\r
 
-      \    food = foods[0];\r
+      \    food = allFood[0];\r
 
       \  } else {\r
 
-      \    food = { x: 0, y: 0 };\r
+      \    food = { x: 0, y: 0, type: 'food' };\r
 
-      \    foods = [food];\r
+      \    allFood = [food];\r
 
       \  }\r
 
@@ -3367,7 +3424,7 @@ files:
 
       \  // Add all other foods to occupied positions\r
 
-      \  foods.forEach(f => {\r
+      \  allFood.forEach(f => {\r
 
       \    if (f.x !== eatenFood.x || f.y !== eatenFood.y) {\r
 
@@ -3425,7 +3482,15 @@ files:
 
       \      noStroke();\r
 
-      \      fill(FOOD_CONFIG.color); // Green for food\r
+      \      // Use different colors based on food type\r
+
+      \      const foodColor = singleFood.type === 'poison' \r
+
+      \        ? FOOD_CONFIG.poisonColor \r
+
+      \        : FOOD_CONFIG.foodColor;\r
+
+      \      fill(foodColor);\r
 
       \      const s = GRID.cell;\r
 
@@ -3443,7 +3508,15 @@ files:
 
       \    noStroke();\r
 
-      \    fill(FOOD_CONFIG.color); // Green for food\r
+      \    // Use food color as default for backward compatibility\r
+
+      \    const foodColor = f.type === 'poison' \r
+
+      \      ? FOOD_CONFIG.poisonColor \r
+
+      \      : FOOD_CONFIG.foodColor;\r
+
+      \    fill(foodColor);\r
 
       \    const s = GRID.cell;\r
 
@@ -3846,6 +3919,10 @@ files:
       \    case 'head-to-head':\r
 
       \      return 'collided head-to-head.';\r
+
+      \    case 'poison':\r
+
+      \      return 'ate poison.';\r
 
       \    default:\r
 
@@ -7693,15 +7770,13 @@ files:
 
       }\r\n"
   - path: course1/unit1/lesson1/lessonpart6/player-ai.js
-    content: "function playerAI(player) { \r
+    content: "function playerAI(player) {\r
 
-      \  // 1. Open systemPrompt.md\r
+      \  const direction = player.towardsClosestFood();\r
 
-      \  // 2. Copy/paste into an LLM\r
+      \  console.log(\"SnakeBot: Food spotted, I'm going for it!\");\r
 
-      \  // 3. Write out your snake strategy\r
-
-      \  // 4. Copy/paste back here\r
+      \  return direction;\r
 
       }\r\n"
   - path: course1/unit1/lesson1/lessonpart6/game.js
@@ -7731,7 +7806,7 @@ files:
 
       let food = { x: 0, y: 0 };\r
 
-      let foods = []; // Array of all foods, foods[0] should always be food\r
+      let allFood = []; // Array of all foods, foods[0] should always be food\r
 
       let scoreEl;\r
 
@@ -7823,9 +7898,13 @@ files:
 
       const FOOD_CONFIG = {\r
 
-      \  count: 1,\r
+      \  foodCount: 1,\r
 
-      \  color: '#22c55e'\r
+      \  poisonCount: 2,\r
+
+      \  foodColor: '#22c55e',\r
+
+      \  poisonColor: '#9333ea'\r
 
       };\r
 
@@ -7856,6 +7935,8 @@ files:
       window.PLAYER_CONFIG = PLAYER_CONFIG;\r
 
       window.ENEMY_CONFIG = ENEMY_CONFIG;\r
+
+      window.FOOD_CONFIG = FOOD_CONFIG;\r
 
       \r
 
@@ -7957,7 +8038,7 @@ files:
 
       \  if (gamePaused) {\r
 
-      \    drawFood(foods);\r
+      \    drawFood(allFood);\r
 
       \    player.draw(this, GRID.cell);\r
 
@@ -7976,7 +8057,7 @@ files:
 
       \  if (gameOver) {\r
 
-      \    drawFood(foods);\r
+      \    drawFood(allFood);\r
 
       \    drawGameOver();\r
 
@@ -7990,7 +8071,7 @@ files:
 
       \  game.food = food;\r
 
-      \  game.foods = foods;\r
+      \  game.foods = allFood;\r
 
       \  game.player = player;\r
 
@@ -8030,7 +8111,7 @@ files:
 
       \  const now = millis();\r
 
-      \  const gameContext = { food, foods, enemy, player, GRID };\r
+      \  const gameContext = { food, foods: allFood, enemy, player, GRID };\r
 
       \  const pRes = player.moveIfReady(now, gameContext);\r
 
@@ -8063,7 +8144,13 @@ files:
 
       \    if (pRes.ateFood) {\r
 
-      \      bumpScore(1);\r
+      \      // Only increase score for regular food, not poison\r
+
+      \      if (!pRes.atePoison) {\r
+
+      \        bumpScore(1);\r
+
+      \      }\r
 
       \      moveEatenFood(pRes.eatenFood);\r
 
@@ -8079,7 +8166,7 @@ files:
 
       \r
 
-      \  drawFood(foods);\r
+      \  drawFood(allFood);\r
 
       \  player.draw(this, GRID.cell);\r
 
@@ -8209,11 +8296,13 @@ files:
 
       \r
 
-      \  foods = []; // Clear existing foods\r
+      \  allFood = []; // Clear existing foods\r
 
       \  \r
 
-      \  for (let i = 0; i < FOOD_CONFIG.count; i++) {\r
+      \  // Add regular food items\r
+
+      \  for (let i = 0; i < FOOD_CONFIG.foodCount; i++) {\r
 
       \    let x, y, tries = 0;\r
 
@@ -8229,7 +8318,7 @@ files:
 
       \        // If we can't find a spot, just place it at (0,0) and break\r
 
-      \        foods.push({x: 0, y: 0});\r
+      \        allFood.push({x: 0, y: 0, type: 'food'});\r
 
       \        break;\r
 
@@ -8241,9 +8330,52 @@ files:
 
       \    if (tries <= 500) {\r
 
-      \      const newFood = { x, y };\r
+      \      const newFood = { x, y, type: 'food' };\r
 
-      \      foods.push(newFood);\r
+      \      allFood.push(newFood);\r
+
+      \      occupied.add(`${x},${y}`); // Mark this position as occupied for
+      next food\r
+
+      \    }\r
+
+      \  }\r
+
+      \  \r
+
+      \  // Add poison items\r
+
+      \  for (let i = 0; i < FOOD_CONFIG.poisonCount; i++) {\r
+
+      \    let x, y, tries = 0;\r
+
+      \    do {\r
+
+      \      x = Math.floor(Math.random() * GRID.cols);\r
+
+      \      y = Math.floor(Math.random() * GRID.rows);\r
+
+      \      tries++;\r
+
+      \      if (tries > 500) { \r
+
+      \        // If we can't find a spot, just place it at (0,0) and break\r
+
+      \        allFood.push({x: 0, y: 0, type: 'poison'});\r
+
+      \        break;\r
+
+      \      }\r
+
+      \    } while (occupied.has(`${x},${y}`));\r
+
+      \    \r
+
+      \    if (tries <= 500) {\r
+
+      \      const newFood = { x, y, type: 'poison' };\r
+
+      \      allFood.push(newFood);\r
 
       \      occupied.add(`${x},${y}`); // Mark this position as occupied for
       next food\r
@@ -8256,15 +8388,15 @@ files:
 
       \  // Set the first food as the primary food for backward compatibility\r
 
-      \  if (foods.length > 0) {\r
+      \  if (allFood.length > 0) {\r
 
-      \    food = foods[0];\r
+      \    food = allFood[0];\r
 
       \  } else {\r
 
-      \    food = { x: 0, y: 0 };\r
+      \    food = { x: 0, y: 0, type: 'food' };\r
 
-      \    foods = [food];\r
+      \    allFood = [food];\r
 
       \  }\r
 
@@ -8286,7 +8418,7 @@ files:
 
       \  // Add all other foods to occupied positions\r
 
-      \  foods.forEach(f => {\r
+      \  allFood.forEach(f => {\r
 
       \    if (f.x !== eatenFood.x || f.y !== eatenFood.y) {\r
 
@@ -8344,7 +8476,15 @@ files:
 
       \      noStroke();\r
 
-      \      fill(FOOD_CONFIG.color); // Green for food\r
+      \      // Use different colors based on food type\r
+
+      \      const foodColor = singleFood.type === 'poison' \r
+
+      \        ? FOOD_CONFIG.poisonColor \r
+
+      \        : FOOD_CONFIG.foodColor;\r
+
+      \      fill(foodColor);\r
 
       \      const s = GRID.cell;\r
 
@@ -8362,7 +8502,15 @@ files:
 
       \    noStroke();\r
 
-      \    fill(FOOD_CONFIG.color); // Green for food\r
+      \    // Use food color as default for backward compatibility\r
+
+      \    const foodColor = f.type === 'poison' \r
+
+      \      ? FOOD_CONFIG.poisonColor \r
+
+      \      : FOOD_CONFIG.foodColor;\r
+
+      \    fill(foodColor);\r
 
       \    const s = GRID.cell;\r
 
@@ -8765,6 +8913,10 @@ files:
       \    case 'head-to-head':\r
 
       \      return 'collided head-to-head.';\r
+
+      \    case 'poison':\r
+
+      \      return 'ate poison.';\r
 
       \    default:\r
 
