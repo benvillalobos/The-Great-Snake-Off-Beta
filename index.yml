@@ -7417,13 +7417,17 @@ files:
 
       </html>\r\n"
   - path: course1/unit1/lesson1/lessonpart5/player-ai.js
-    content: "// 1. Open systemPrompt.md\r
+    content: "function playerAI(player) { \r
 
-      // 2. Copy/paste into an LLM\r
+      \    // 1. Open systemPrompt.md\r
 
-      // 3. Write out your snake strategy\r
+      \    // 2. Copy/paste into an LLM\r
 
-      // 4. Copy/paste back here\r\n"
+      \    // 3. Write out your snake strategy\r
+
+      \    // 4. Copy/paste back here\r
+
+      }"
   - path: course1/unit1/lesson1/lessonpart5/enemy-ai.js
     content: "function enemyAI(enemy) { \r
 
