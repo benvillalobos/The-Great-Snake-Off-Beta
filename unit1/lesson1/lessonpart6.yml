@@ -1,13 +1,13 @@
 # yaml-language-server: $schema=https://vscodeedu.com/assets/schema/course-v2.schema.json
 id: lessonpart6
-title: ☠️ The Poison Pit
+title: ☠️ The Venomancer
 content: >
   *The arena glows a sickly green as the gates creak open. A thin, sly snake
   slithers out, leaving trails of glowing mist. All around, strange food appears
   — some fresh and ripe, others dark and spoiled.*
 
 
-  **Poison Pit Snake**\
+  **The Venomancer**\
 
   Heheheh… hungry, are we? Too bad you can’t tell the feast from the poison. Eat
   up, little fool.
@@ -19,7 +19,13 @@ content: >
   **SnakeBot**\
 
   (disgusted) Ugh, you’ve got to be kidding me. I can’t tell what’s good or bad!
-  Coach, if I grab the wrong bite, I’m done for!
+  If I grab the wrong bite, I’m done for!
+
+
+  **The Venomancer**\
+
+  (laughing wildly) You’ll never resist! The hungrier you get, the more tempting
+  it becomes!
 
 
   *SnakeBot coils anxiously, glaring at the pit of food.*
@@ -27,28 +33,27 @@ content: >
 
   **SnakeBot**\
 
-  This is where things get advanced. A plain old “go for food” won’t cut it
-  anymore. You’ll need to tell me not just what to do… but what *not* to do.
-  That’s prompt engineering at a higher level.
+  This is where I need your smarts. You’ll need to tell me what to do and what
+  *not* to do. This is next level prompt engineering!
 
 
-  *SnakeBot straightens suddenly, a glint in its eye.*
+  **The Venomancer**\
+
+  (laughing even harder) I don't even** need a strategy! You'll lose on your
+  own!
 
 
-  **SnakeBot**\
-
-  But wait — I can feel something new. A hidden ability. There’s an API I can
-  use to check the type of food. With the right prompt, you can tell me to use
-  it. Then I’ll know which bites are safe.
-
-
-  **Poison Pit Snake**\
-
-  (laughing wildly) You’ll never resist! The hungrier you get, the more tempting
-  it becomes!
+  *SnakeBot gulps and wipes off a bead of sweat.*
 
 
   **SnakeBot**\
 
-  (rolling its eyes) Coach, please. Don’t let me embarrass myself out there.
-  Tell me exactly how to avoid the bad stuff.
+  Alright partner, you got this...right?
+showEditor: true
+editors:
+  - course1/systemPrompt.md
+  - course1/unit1/lesson1/lessonpart6/player-ai.js
+  - course1/unit1/lesson1/lessonpart6/game.js
+  - course1/unit1/lesson1/lessonpart6/index.html
+  - course1/unit1/lesson1/lessonpart6/snake.js
+  - course1/unit1/lesson1/lessonpart6/enemy-ai.js
