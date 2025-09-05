@@ -29,7 +29,7 @@ content: >
 
   Let’s start simple. Try giving me the prompt: **Go after food.** Run the
   simulation a few times and see what I do. If you’re curious, peek at the code
-  too! You’ll see my coils turning into lines of strategy.
+  too!
 showEditor: true
 editors:
   - course1/unit1/lesson1/lessonpart3/enemy-ai.js
@@ -38,3 +38,21 @@ editors:
   - course1/unit1/lesson1/lessonpart3/player-ai.js
   - course1/unit1/lesson1/lessonpart3/snake.js
   - course1/systemPrompt.md
+questionGroups:
+  - id: "1"
+    questions:
+      - id: "1"
+        type: multiple
+        content: What is a prompt?
+        options:
+          - id: "1"
+            value: A strategy or instruction given to SnakeBot to generate code.
+            explanation: A prompt is a strategy or instruction that guides SnakeBot in
+              generating code.
+            isCorrect: true
+          - id: "2"
+            value: A random move made by SnakeBot without any input.
+            explanation: SnakeBot requires a prompt to make moves; it doesn't act randomly.
+          - id: "3"
+            value: A type of error that occurs when SnakeBot malfunctions.
+            explanation: A prompt is not an error; it's an instruction for SnakeBot.

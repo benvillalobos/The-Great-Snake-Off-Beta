@@ -1549,15 +1549,11 @@ files:
   - path: course1/unit1/lesson1/lessonpart3/player-ai.js
     content: "function playerAI(player) { \r
 
-      \    // To get started:\r
+      \  let direction = player.towardsFood();\r
 
-      \    // 1. Open systemPrompt.md\r
+      \  console.log(\"SnakeBot: Food spotted, charging in!\");\r
 
-      \    // 2. Copy/paste into an LLM\r
-
-      \    // 3. Describe your strategy to the LLM\r
-
-      \    // 4. Copy/paste the generated code here\r
+      \  return direction;\r
 
       }\r\n"
   - path: course1/unit1/lesson1/lessonpart3/snake.js
