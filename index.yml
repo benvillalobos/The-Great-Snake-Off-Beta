@@ -1582,13 +1582,15 @@ files:
 
       }\r\n"
   - path: course1/unit1/lesson1/lessonpart3/player-ai.js
-    content: "function playerAI(player) {\r
+    content: "function playerAI(player) { \r
 
-      \  const direction = player.towardsClosestFood();\r
+      \  // 1. Open systemPrompt.md\r
 
-      \  console.log(\"SnakeBot: Food spotted, I'm going for it!\");\r
+      \  // 2. Copy/paste into an LLM\r
 
-      \  return direction;\r
+      \  // 3. Write out your snake strategy\r
+
+      \  // 4. Copy/paste back here\r
 
       }\r\n"
   - path: course1/unit1/lesson1/lessonpart3/snake.js
@@ -4610,6 +4612,8 @@ files:
 
       \    let eatenFood = null;\r
 
+      \    let atePoison = false;\r
+
       \    if (foods) {\r
 
       \      for (const food of foods) {\r
@@ -4620,7 +4624,25 @@ files:
 
       \          eatenFood = food;\r
 
-      \          this.growBy += 1;\r
+      \          // Handle different food types\r
+
+      \          if (food.type === 'poison') {\r
+
+      \            atePoison = true;\r
+
+      \            // Poison immediately kills the snake\r
+
+      \            this.alive = false;\r
+
+      \            this.deathCause = 'poison';\r
+
+      \          } else {\r
+
+      \            // Regular food grows the snake\r
+
+      \            this.growBy += 1;\r
+
+      \          }\r
 
       \          break;\r
 
@@ -4648,7 +4670,8 @@ files:
 
       \    this._lastMove = nowMs;\r
 
-      \    return { moved: true, ateFood, eatenFood, newHead: next };\r
+      \    return { moved: true, ateFood, eatenFood, atePoison, newHead: next
+      };\r
 
       \  }\r
 
@@ -4814,9 +4837,54 @@ files:
 
       \r
 
-      \  towardsFood() {\r
+      \  getClosestFood() {\r
 
-      \    return this.towards(game.food);\r
+      \    // If there are no foods, fallback to the food object for backward
+      compatibility\r
+
+      \    if (!game.foods || game.foods.length === 0) {\r
+
+      \      return game.food;\r
+
+      \    }\r
+
+      \r
+
+      \    let closestFood = game.foods[0];\r
+
+      \    let minDistance = this.distanceTo(closestFood);\r
+
+      \r
+
+      \    for (let i = 1; i < game.foods.length; i++) {\r
+
+      \      const food = game.foods[i];\r
+
+      \      const distance = this.distanceTo(food);\r
+
+      \      if (distance < minDistance) {\r
+
+      \        minDistance = distance;\r
+
+      \        closestFood = food;\r
+
+      \      }\r
+
+      \    }\r
+
+      \r
+
+      \    return closestFood;\r
+
+      \  }\r
+
+      \r
+
+      \  towardsClosestFood() {\r
+
+      \    const targetFood = this.getClosestFood();\r
+
+      \    return this.towards(targetFood);\r
 
       \  }\r
 
@@ -5055,6 +5123,19 @@ files:
 
       \  }\r
 
+      \  \r
+
+      \  willHitPoisonFood(direction) {\r
+
+      \    if (!game.foods || game.foods.length === 0) return false;\r
+
+      \    const next = this._getNextCell(direction);\r
+
+      \    return game.foods.some(food => food.type === 'poison' && food.x ===
+      next.x && food.y === next.y);\r
+
+      \  }\r
+
       \r
 
       \  willHitAnything(direction) {\r
@@ -5074,7 +5155,9 @@ files:
 
       \           this.willHitSelf(direction) ||\r
 
-      \           this.willHitEnemy(direction);\r
+      \           this.willHitEnemy(direction) ||\r
+
+      \           this.willHitPoisonFood(direction);\r
 
       \  }\r
 
@@ -5082,28 +5165,24 @@ files:
 
       \  // --- Spacial Awareness ---\r
 
-      \  distanceToFood() {\r
+      \  distanceTo(target) {\r
 
       \    const head = this.head();\r
 
-      \    return Math.abs(head.x - game.food.x) + Math.abs(head.y -
-      game.food.y);\r
+      \    return Math.abs(head.x - target.x) + Math.abs(head.y - target.y);\r
 
       \  }\r
 
-      \r
+      \  \r
 
       \  distanceToEnemy() {\r
 
       \    const otherSnake = this.id === PLAYER_CONFIG.id ? game.enemy :
       game.player;\r
 
-      \    const head = this.head();\r
+      \    if (!otherSnake?.alive) return Infinity;\r
 
-      \    const enemyHead = otherSnake.head();\r
-
-      \    return Math.abs(head.x - enemyHead.x) + Math.abs(head.y -
-      enemyHead.y);\r
+      \    return this.distanceTo(otherSnake.head());\r
 
       \  }\r
 
@@ -6819,6 +6898,8 @@ files:
 
       \    let eatenFood = null;\r
 
+      \    let atePoison = false;\r
+
       \    if (foods) {\r
 
       \      for (const food of foods) {\r
@@ -6829,7 +6910,25 @@ files:
 
       \          eatenFood = food;\r
 
-      \          this.growBy += 1;\r
+      \          // Handle different food types\r
+
+      \          if (food.type === 'poison') {\r
+
+      \            atePoison = true;\r
+
+      \            // Poison immediately kills the snake\r
+
+      \            this.alive = false;\r
+
+      \            this.deathCause = 'poison';\r
+
+      \          } else {\r
+
+      \            // Regular food grows the snake\r
+
+      \            this.growBy += 1;\r
+
+      \          }\r
 
       \          break;\r
 
@@ -6857,7 +6956,8 @@ files:
 
       \    this._lastMove = nowMs;\r
 
-      \    return { moved: true, ateFood, eatenFood, newHead: next };\r
+      \    return { moved: true, ateFood, eatenFood, atePoison, newHead: next
+      };\r
 
       \  }\r
 
@@ -7023,9 +7123,54 @@ files:
 
       \r
 
-      \  towardsFood() {\r
+      \  getClosestFood() {\r
 
-      \    return this.towards(game.food);\r
+      \    // If there are no foods, fallback to the food object for backward
+      compatibility\r
+
+      \    if (!game.foods || game.foods.length === 0) {\r
+
+      \      return game.food;\r
+
+      \    }\r
+
+      \r
+
+      \    let closestFood = game.foods[0];\r
+
+      \    let minDistance = this.distanceTo(closestFood);\r
+
+      \r
+
+      \    for (let i = 1; i < game.foods.length; i++) {\r
+
+      \      const food = game.foods[i];\r
+
+      \      const distance = this.distanceTo(food);\r
+
+      \      if (distance < minDistance) {\r
+
+      \        minDistance = distance;\r
+
+      \        closestFood = food;\r
+
+      \      }\r
+
+      \    }\r
+
+      \r
+
+      \    return closestFood;\r
+
+      \  }\r
+
+      \r
+
+      \  towardsClosestFood() {\r
+
+      \    const targetFood = this.getClosestFood();\r
+
+      \    return this.towards(targetFood);\r
 
       \  }\r
 
@@ -7264,6 +7409,19 @@ files:
 
       \  }\r
 
+      \  \r
+
+      \  willHitPoisonFood(direction) {\r
+
+      \    if (!game.foods || game.foods.length === 0) return false;\r
+
+      \    const next = this._getNextCell(direction);\r
+
+      \    return game.foods.some(food => food.type === 'poison' && food.x ===
+      next.x && food.y === next.y);\r
+
+      \  }\r
+
       \r
 
       \  willHitAnything(direction) {\r
@@ -7283,7 +7441,9 @@ files:
 
       \           this.willHitSelf(direction) ||\r
 
-      \           this.willHitEnemy(direction);\r
+      \           this.willHitEnemy(direction) ||\r
+
+      \           this.willHitPoisonFood(direction);\r
 
       \  }\r
 
@@ -7291,28 +7451,24 @@ files:
 
       \  // --- Spacial Awareness ---\r
 
-      \  distanceToFood() {\r
+      \  distanceTo(target) {\r
 
       \    const head = this.head();\r
 
-      \    return Math.abs(head.x - game.food.x) + Math.abs(head.y -
-      game.food.y);\r
+      \    return Math.abs(head.x - target.x) + Math.abs(head.y - target.y);\r
 
       \  }\r
 
-      \r
+      \  \r
 
       \  distanceToEnemy() {\r
 
       \    const otherSnake = this.id === PLAYER_CONFIG.id ? game.enemy :
       game.player;\r
 
-      \    const head = this.head();\r
+      \    if (!otherSnake?.alive) return Infinity;\r
 
-      \    const enemyHead = otherSnake.head();\r
-
-      \    return Math.abs(head.x - enemyHead.x) + Math.abs(head.y -
-      enemyHead.y);\r
+      \    return this.distanceTo(otherSnake.head());\r
 
       \  }\r
 
@@ -9375,6 +9531,8 @@ files:
 
       \    let eatenFood = null;\r
 
+      \    let atePoison = false;\r
+
       \    if (foods) {\r
 
       \      for (const food of foods) {\r
@@ -9385,7 +9543,25 @@ files:
 
       \          eatenFood = food;\r
 
-      \          this.growBy += 1;\r
+      \          // Handle different food types\r
+
+      \          if (food.type === 'poison') {\r
+
+      \            atePoison = true;\r
+
+      \            // Poison immediately kills the snake\r
+
+      \            this.alive = false;\r
+
+      \            this.deathCause = 'poison';\r
+
+      \          } else {\r
+
+      \            // Regular food grows the snake\r
+
+      \            this.growBy += 1;\r
+
+      \          }\r
 
       \          break;\r
 
@@ -9413,7 +9589,8 @@ files:
 
       \    this._lastMove = nowMs;\r
 
-      \    return { moved: true, ateFood, eatenFood, newHead: next };\r
+      \    return { moved: true, ateFood, eatenFood, atePoison, newHead: next
+      };\r
 
       \  }\r
 
@@ -9579,9 +9756,54 @@ files:
 
       \r
 
-      \  towardsFood() {\r
+      \  getClosestFood() {\r
 
-      \    return this.towards(game.food);\r
+      \    // If there are no foods, fallback to the food object for backward
+      compatibility\r
+
+      \    if (!game.foods || game.foods.length === 0) {\r
+
+      \      return game.food;\r
+
+      \    }\r
+
+      \r
+
+      \    let closestFood = game.foods[0];\r
+
+      \    let minDistance = this.distanceTo(closestFood);\r
+
+      \r
+
+      \    for (let i = 1; i < game.foods.length; i++) {\r
+
+      \      const food = game.foods[i];\r
+
+      \      const distance = this.distanceTo(food);\r
+
+      \      if (distance < minDistance) {\r
+
+      \        minDistance = distance;\r
+
+      \        closestFood = food;\r
+
+      \      }\r
+
+      \    }\r
+
+      \r
+
+      \    return closestFood;\r
+
+      \  }\r
+
+      \r
+
+      \  towardsClosestFood() {\r
+
+      \    const targetFood = this.getClosestFood();\r
+
+      \    return this.towards(targetFood);\r
 
       \  }\r
 
@@ -9820,6 +10042,19 @@ files:
 
       \  }\r
 
+      \  \r
+
+      \  willHitPoisonFood(direction) {\r
+
+      \    if (!game.foods || game.foods.length === 0) return false;\r
+
+      \    const next = this._getNextCell(direction);\r
+
+      \    return game.foods.some(food => food.type === 'poison' && food.x ===
+      next.x && food.y === next.y);\r
+
+      \  }\r
+
       \r
 
       \  willHitAnything(direction) {\r
@@ -9839,7 +10074,9 @@ files:
 
       \           this.willHitSelf(direction) ||\r
 
-      \           this.willHitEnemy(direction);\r
+      \           this.willHitEnemy(direction) ||\r
+
+      \           this.willHitPoisonFood(direction);\r
 
       \  }\r
 
@@ -9847,28 +10084,24 @@ files:
 
       \  // --- Spacial Awareness ---\r
 
-      \  distanceToFood() {\r
+      \  distanceTo(target) {\r
 
       \    const head = this.head();\r
 
-      \    return Math.abs(head.x - game.food.x) + Math.abs(head.y -
-      game.food.y);\r
+      \    return Math.abs(head.x - target.x) + Math.abs(head.y - target.y);\r
 
       \  }\r
 
-      \r
+      \  \r
 
       \  distanceToEnemy() {\r
 
       \    const otherSnake = this.id === PLAYER_CONFIG.id ? game.enemy :
       game.player;\r
 
-      \    const head = this.head();\r
+      \    if (!otherSnake?.alive) return Infinity;\r
 
-      \    const enemyHead = otherSnake.head();\r
-
-      \    return Math.abs(head.x - enemyHead.x) + Math.abs(head.y -
-      enemyHead.y);\r
+      \    return this.distanceTo(otherSnake.head());\r
 
       \  }\r
 
