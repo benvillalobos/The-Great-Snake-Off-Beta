@@ -1992,13 +1992,25 @@ files:
 
       \  towardsFood() {\r
 
-      \    return this.towards(food);\r
+      \    return this.towards(game.food);\r
 
       \  }\r
 
       \r
 
-      \  towardsEnemy(otherSnake) {\r
+      \  towardsEnemy() {\r
+
+      \    // Dynamically determine the enemy based on this snake's ID\r
+
+      \    const otherSnake = this.id === 'player' ? game.enemy : game.player;\r
+
+      \    if (!otherSnake?.alive) {\r
+
+      \      // If enemy isn't alive, return a random safe direction\r
+
+      \      return this.randomSafeDirection();\r
+
+      \    }\r
 
       \    return this.towards(otherSnake.head());\r
 
@@ -2006,7 +2018,19 @@ files:
 
       \r
 
-      \  awayFromEnemy(otherSnake) {\r
+      \  awayFromEnemy() {\r
+
+      \    // Dynamically determine the enemy based on this snake's ID\r
+
+      \    const otherSnake = this.id === 'player' ? game.enemy : game.player;\r
+
+      \    if (!otherSnake?.alive) {\r
+
+      \      // If enemy isn't alive, return current direction\r
+
+      \      return this.currentDirection();\r
+
+      \    }\r
 
       \    const dir = this.towards(otherSnake.head());\r
 
@@ -2230,11 +2254,12 @@ files:
 
       \  // --- Spacial Awareness ---\r
 
-      \  distanceToFood(food) {\r
+      \  distanceToFood() {\r
 
       \    const head = this.head();\r
 
-      \    return Math.abs(head.x - food.x) + Math.abs(head.y - food.y);\r
+      \    return Math.abs(head.x - game.food.x) + Math.abs(head.y -
+      game.food.y);\r
 
       \  }\r
 
