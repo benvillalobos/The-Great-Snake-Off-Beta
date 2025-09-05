@@ -37,4 +37,4 @@ editors:
   - course1/unit1/lesson1/lessonpart3/game.js
   - course1/unit1/lesson1/lessonpart3/player-ai.js
   - course1/unit1/lesson1/lessonpart3/snake.js
-  - course1/unit1/lesson1/lessonpart3/systemPrompt.md
+  - course1/systemPrompt.md
