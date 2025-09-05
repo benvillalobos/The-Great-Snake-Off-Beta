@@ -7,7 +7,7 @@ content: >
   across the floor.*
 
 
-  **Hungry Serpent**\
+  **The Hungry Serpent**\
 
   Food! Glorious food! I’ll eat it all, every last bite! Nothing else matters!
 
@@ -18,7 +18,7 @@ content: >
   **SnakeBot**\
 
   (rolling its eyes) Great. A one-trick snake.  He’s got one move — eat, eat,
-  eat.
+  eat. To make matters worse, *he's faster than us!*
 
 
   *SnakeBot turns serious, lowering its voice.*
@@ -27,25 +27,25 @@ content: >
   **SnakeBot**\
 
   Here’s where things get tricky. A simple prompt like “go for food” works fine…
-  until it doesn’t. Hungry Serpent is reckless and will always race me to the
-  food. If we do the same thing, we’ll run into his tail eventually.
+  until it doesn’t. Hungry Serpent is faster than us and will always race me to
+  the food. If we do the same thing, we’ll run into his tail eventually.
 
 
-  *It slams its tail against the ground for emphasis.*
+  *SnakeBot slams its tail against the ground for emphasis.*
 
 
   **SnakeBot**\
 
   That’s where **prompt engineering** comes in. You’ve gotta sharpen the
   strategy. Don’t just say “eat food.” Say it with more detail. Trial and error,
-  until you find the strategy that can beat this scale brain.
+  until you find the strategy that can always beat this scale brain.
 
 
   *The Hungry Serpent lifts its head, crumbs of food still falling from its
   jaws.*
 
 
-  **Hungry Serpent**\
+  **The Hungry Serpent**\
 
   You’ll never beat me! If it’s food on the field, it’s mine!
 
@@ -53,3 +53,11 @@ content: >
   **SnakeBot**\
 
   (smiling faintly) Partner, you ready to prove him wrong?
+showEditor: true
+editors:
+  - course1/unit1/lesson1/lessonpart4/game.js
+  - course1/unit1/lesson1/lessonpart4/index.html
+  - course1/unit1/lesson1/lessonpart4/snake.js
+  - course1/unit1/lesson1/lessonpart4/player-ai.js
+  - course1/unit1/lesson1/lessonpart4/enemy-ai.js
+  - course1/systemPrompt.md

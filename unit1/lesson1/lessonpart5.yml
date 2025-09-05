@@ -1,16 +1,16 @@
 # yaml-language-server: $schema=https://vscodeedu.com/assets/schema/course-v2.schema.json
 id: lessonpart5
-title: 🚜 The Bulldozer Snake
+title: 🚜 The Bulldozer
 content: >
   *The ground trembles as the arena gates burst open. A massive snake with
   jagged scars and scales like stone drags its heavy body forward, each step
   sending dust into the air.*
 
 
-  **Bulldozer Snake**\
+  **The Bulldozer**\
 
   Slow… steady… unstoppable. I’ll crush you under my coils before I even think
-  about food.
+  about food. All I have to do is***cut you off!***&#x20;
 
 
   *It slams its body into a pillar, splintering it in two, then hisses with a
@@ -19,12 +19,12 @@ content: >
 
   **SnakeBot**\
 
-  (eyes wide, then narrowing) Coach, this one’s no snack-chaser. Look at him —
-  he doesn’t care about food. He just wants to barrel through me until I’m out
-  of the match.
+  Alright partner, this one’s no snack-chaser. Look at him — he doesn’t care
+  about food. He just wants to barrel through me until I’m out of the match. The
+  good news is *he's slower than we are*, the bad news is...*he's much bigger*.
 
 
-  *SnakeBot coils tighter, clearly uneasy.*
+  *SnakeBot coils tighter.*
 
 
   **SnakeBot**\
@@ -37,12 +37,20 @@ content: >
   *The Bulldozer Snake growls, dragging its body forward like an avalanche.*
 
 
-  **Bulldozer Snake**\
+  **The Bulldozer**\
 
   You can run, you can slither, but you can’t stop the wall.
 
 
   **SnakeBot**\
 
-  (trying to sound confident) Coach, if you can keep me alive against this
-  walking boulder, I’ll believe you’ve got what it takes. So what’s the plan?
+  (trying to sound confident) Partner, if you can keep me alive against this
+  walking boulder, I’ll believe you’ve got what it takes. So, what’s the plan?
+showEditor: true
+editors:
+  - course1/unit1/lesson1/lessonpart5/game.js
+  - course1/unit1/lesson1/lessonpart5/snake.js
+  - course1/unit1/lesson1/lessonpart5/index.html
+  - course1/unit1/lesson1/lessonpart5/player-ai.js
+  - course1/unit1/lesson1/lessonpart5/enemy-ai.js
+  - course1/systemPrompt.md
