@@ -27,6 +27,7 @@ content: |
   **SnakeBot**\
   (trying to sound confident) Partner, if you can keep me alive against this walking boulder, I’ll believe you’ve got what it takes. So, what’s the plan?
 showEditor: true
+showExplorer: true
 editors:
   - course1/unit1/lesson1/lessonpart5/game.js
   - course1/unit1/lesson1/lessonpart5/snake.js

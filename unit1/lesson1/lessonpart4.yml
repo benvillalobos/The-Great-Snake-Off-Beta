@@ -32,6 +32,7 @@ content: |
   **SnakeBot**\
   (smiling faintly) Partner, you ready to prove him wrong?
 showEditor: true
+showExplorer: true
 editors:
   - course1/unit1/lesson1/lessonpart4/game.js
   - course1/unit1/lesson1/lessonpart4/index.html

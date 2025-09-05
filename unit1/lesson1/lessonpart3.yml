@@ -19,6 +19,7 @@ content: |
   **SnakeBot**\
   Let’s start simple. Try giving me the prompt: **Go after food.** Run the simulation a few times and see what I do. If you’re curious, peek at the code too!
 showEditor: true
+showExplorer: true
 editors:
   - course1/unit1/lesson1/lessonpart3/enemy-ai.js
   - course1/unit1/lesson1/lessonpart3/index.html

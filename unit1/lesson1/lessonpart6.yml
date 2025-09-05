@@ -30,6 +30,7 @@ content: |
   **SnakeBot**\
   Alright partner, you got this...right?
 showEditor: true
+showExplorer: true
 editors:
   - course1/systemPrompt.md
   - course1/unit1/lesson1/lessonpart6/player-ai.js
