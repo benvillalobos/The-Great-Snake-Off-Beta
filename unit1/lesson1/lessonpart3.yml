@@ -24,9 +24,9 @@ editors:
   - course1/unit1/lesson1/lessonpart3/enemy-ai.js
   - course1/unit1/lesson1/lessonpart3/index.html
   - course1/unit1/lesson1/lessonpart3/game.js
-  - course1/unit1/lesson1/lessonpart3/player-ai.js
   - course1/unit1/lesson1/lessonpart3/snake.js
-  - course1/systemPrompt.md
+  - course1/unit1/lesson1/lessonpart3/prompt.md
+  - course1/unit1/lesson1/lessonpart3/player-ai.js
 questionGroups:
   - id: "1"
     questions:
@@ -45,3 +45,7 @@ questionGroups:
           - id: "3"
             value: A type of error that occurs when SnakeBot malfunctions.
             explanation: A prompt is not an error; it's an instruction for SnakeBot.
+codePrompts:
+  - systemPrompt: "1"
+    promptFile: course1/unit1/lesson1/lessonpart3/prompt.md
+    targetCodeFile: course1/unit1/lesson1/lessonpart3/player-ai.js

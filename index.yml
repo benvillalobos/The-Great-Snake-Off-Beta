@@ -1911,18 +1911,6 @@ files:
       \  }\r
 
       }\r\n"
-  - path: course1/unit1/lesson1/lessonpart3/player-ai.js
-    content: "function playerAI(player) { \r
-
-      \  // 1. Open systemPrompt.md\r
-
-      \  // 2. Copy/paste into an LLM\r
-
-      \  // 3. Write out your snake strategy\r
-
-      \  // 4. Copy/paste back here\r
-
-      }\r\n"
   - path: course1/unit1/lesson1/lessonpart3/snake.js
     content: "class Snake {\r
 
