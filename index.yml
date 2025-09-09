@@ -8216,6 +8216,8 @@ files:
       \  return direction;\r
 
       }\r\n"
+  - path: course1/unit1/lesson1/lessonpart6/prompts.md
+    content: Do this or that
   - path: course1/unit1/lesson1/lessonpart4/game.js
     content: "// ------ Grid & Canvas ------\r
 
