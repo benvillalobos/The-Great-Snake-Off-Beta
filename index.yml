@@ -7,10 +7,6 @@ contacts:
   - displayName: Ben Villalobos
     pictureUrl: https://avatars.githubusercontent.com/u/4691428?v=4
     homePageUrl: https://github.com/benvillalobos
-systemPrompts:
-  - id: "1"
-    displayName: System Prompt
-    prompt: ""
 files:
   - path: course1/unit1/lesson1/lessonpart9/failed.md
     content: "### VB's\r
