@@ -9656,5 +9656,32 @@ files:
       \  size() { return this.body.length; }\r
 
       }\r\n"
+  - path: course1/unit1/lesson1/lessonpart5/enemy-ai.js
+    content: "function enemyAI(enemy) { \r
+
+      \  const playerHead = game.player.head();\r
+
+      \  const playerCurrentDir = game.player.currentDirection();\r
+
+      \  const targetAhead = { \r
+
+      \    x: playerHead.x + playerCurrentDir.x, \r
+
+      \    y: playerHead.y + playerCurrentDir.y \r
+
+      \  };\r
+
+      \r
+
+      \  const dirToCutOff = enemy.towards(targetAhead);\r
+
+      \r
+
+      \  console.log(\"SnakeBot: I'm going in for the cut off! Let's see if the
+      enemy can dodge this!\");\r
+
+      \  return dirToCutOff;\r
+
+      }\r\n"
 units:
   - unit1/index.yml
