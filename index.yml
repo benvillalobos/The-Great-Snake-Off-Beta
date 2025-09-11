@@ -338,1404 +338,50 @@ files:
 
       \r
 
-      // ------ Game State ------\r
+      // ------ Game Configuration ------\r
 
-      let player, enemy;\r
+      const GAME_CONFIG = {\r
 
-      let food = { x: 0, y: 0 };\r
+      \  // Series settings\r
 
-      let foods = []; // Array of all foods, foods[0] should always be food\r
+      \  series: {\r
 
-      let scoreEl;\r
+      \    enabled: true,              // Enable/disable series mode (ignored in
+      training mode)\r
 
-      let speedSlider, speedValue;\r
+      \    winsToWin: 3,               // First to X wins\r
 
-      let winner = null;\r
+      \    resetBetweenGames: true     // Whether to reset the canvas between
+      games\r
 
-      let gameOver = false;\r
+      \  },\r
 
-      let gamePaused = false;\r
+      \  // Training mode setting\r
 
-      let trainingMode = true; // Boolean flag to control training mode\r
-
-      \r
-
-      // ------ Frame History System ------\r
-
-      let frameHistory = [];\r
-
-      let currentFrameIndex = -1\r
-
-      let inReplayMode = false;\r
-
-      let replayBannerAtTop = false;\r
-
-      \r
-
-      // Global game object accessible to AIs\r
-
-      let game = {\r
-
-      \  food: { x: 0, y: 0 },\r
-
-      \  foods: [], // Array of all foods\r
-
-      \  player: null,\r
-
-      \  enemy: null,\r
-
-      \  GRID: GRID\r
-
-      };\r
-
-      window.game = game;\r
-
-      \r
-
-      // ------ Speed Configuration ------\r
-
-      const SPEED_CONFIG = {\r
-
-      \  get playerBaseMs() { return PLAYER_CONFIG.baseMs; }, // Reference
-      player speed from PLAYER_CONFIG\r
-
-      \  get enemyBaseMs() { return ENEMY_CONFIG.baseMs; }, // Reference enemy
-      speed from ENEMY_CONFIG\r
-
-      \  minMs: 10,\r
-
-      \  maxMs: 1000,\r
-
-      \  defaultScale: 1.0\r
+      \  trainingMode: false,          // Whether we're in training mode (no
+      enemy, series disabled)\r
 
       };\r
 
       \r
 
-      // ------ Player Configuration ------\r
+      // ------ Series State ------\r
 
-      const PLAYER_CONFIG = {\r
+      let seriesState = {\r
 
-      \  id: 'SnakeBot',\r
+      \  active: false,                // Whether a series is active\r
 
-      \  start: { x: 3, y: 10 },\r
+      \  playerWins: 0,                // Number of wins for player\r
 
-      \  color: '#3b82f6',\r
+      \  enemyWins: 0,                 // Number of wins for enemy\r
 
-      \  size: 3,\r
+      \  gamesPlayed: 0,               // Number of games played in series\r
 
-      \  direction: { x: 1, y: 0 },\r
+      \  seriesWinner: null,           // Overall series winner\r
 
-      \  baseMs: 200\r
-
-      };\r
-
-      \r
-
-      // ------ Food Configuration ------\r
-
-      const FOOD_CONFIG = {\r
-
-      \  count: 1,\r
-
-      \  color: '#22c55e'\r
+      \  seriesOver: false             // Whether the series is complete\r
 
       };\r
-
-      \r
-
-      // ------ Enemy Configuration ------\r
-
-      const ENEMY_CONFIG = {\r
-
-      \  id: 'Enemy',\r
-
-      \  start: { x: 16, y: 10 },\r
-
-      \  color: '#ef4444',\r
-
-      \  size: 3,\r
-
-      \  direction: { x: -1, y: 0 },\r
-
-      \  baseMs: 200\r
-
-      };\r
-
-      \r
-
-      // Make configs accessible globally\r
-
-      window.PLAYER_CONFIG = PLAYER_CONFIG;\r
-
-      window.ENEMY_CONFIG = ENEMY_CONFIG;\r
-
-      \r
-
-      const Direction = {\r
-
-      \  UP: { x: 0, y: -1 },\r
-
-      \  DOWN: { x: 0, y: 1 }, \r
-
-      \  LEFT: { x: -1, y: 0 },\r
-
-      \  RIGHT: { x: 1, y: 0 }\r
-
-      };\r
-
-      window.Direction = Direction;\r
-
-      \r
-
-      // ------ p5: setup & draw ------\r
-
-      function setup() {\r
-
-      \  const c = createCanvas(canvasW, canvasH);\r
-
-      \  c.parent('p5-holder');\r
-
-      \  pixelDensity(1);\r
-
-      \r
-
-      \  scoreEl = document.getElementById('score');\r
-
-      \  speedSlider = document.getElementById('speed-slider');\r
-
-      \  speedValue = document.getElementById('speed-value');\r
-
-      \  \r
-
-      \  speedSlider.addEventListener('input', updateSpeed);\r
-
-      \  \r
-
-      \  const resetBtn = document.getElementById('reset-btn');\r
-
-      \  resetBtn.addEventListener('click', resetGame);\r
-
-      \  \r
-
-      \  const pauseBtn = document.getElementById('pause-btn');\r
-
-      \  pauseBtn.addEventListener('click', () => {\r
-
-      \    togglePause();\r
-
-      \    // Remove focus to prevent spacebar from triggering button\r
-
-      \    pauseBtn.blur();\r
-
-      \  });\r
-
-      \  \r
-
-      \  startNewGame();\r
-
-      }\r
-
-      \r
-
-      function draw() {\r
-
-      \  background('#0b0b0b');\r
-
-      \  drawGrid();\r
-
-      \r
-
-      \  // If in replay mode, show frame replay instead of normal game\r
-
-      \  if (inReplayMode) {\r
-
-      \    const currentFrame = getCurrentFrame();\r
-
-      \    if (currentFrame) {\r
-
-      \      drawReplayFrame(currentFrame);\r
-
-      \    }\r
-
-      \    drawReplayControls();\r
-
-      \    return;\r
-
-      \  }\r
-
-      \r
-
-      \  // If game is paused, draw everything frozen and show pause overlay\r
-
-      \  if (gamePaused) {\r
-
-      \    drawFood(foods);\r
-
-      \    player.draw(this, GRID.cell);\r
-
-      \    if (enemy) enemy.draw(this, GRID.cell);\r
-
-      \    drawPauseOverlay();\r
-
-      \    return;\r
-
-      \  }\r
-
-      \r
-
-      \  // If game over, draw frozen snakes + winner blinking + option to enter
-      replay\r
-
-      \  if (gameOver) {\r
-
-      \    drawFood(foods);\r
-
-      \    drawGameOver();\r
-
-      \    return;\r
-
-      \  }\r
-
-      \r
-
-      \  // Update global game object before running AIs\r
-
-      \  game.food = food;\r
-
-      \  game.foods = foods;\r
-
-      \  game.player = player;\r
-
-      \  game.enemy = enemy;\r
-
-      \r
-
-      \  // Run AIs and capture their direction decisions\r
-
-      \  if (player.alive) {\r
-
-      \    const playerDirection = window.playerAI(player);\r
-
-      \    if (playerDirection) {\r
-
-      \      player.setDirection(playerDirection);\r
-
-      \    }\r
-
-      \  }\r
-
-      \  if (enemy && enemy.alive) {\r
-
-      \    const enemyDirection = window.enemyAI(enemy);\r
-
-      \    if (enemyDirection) {\r
-
-      \      enemy.setDirection(enemyDirection);\r
-
-      \    }\r
-
-      \  }\r
-
-      \r
-
-      \  // Advance snakes\r
-
-      \  const now = millis();\r
-
-      \  const gameContext = { food, foods, enemy, player, GRID };\r
-
-      \  const pRes = player.moveIfReady(now, gameContext);\r
-
-      \  const eRes = enemy ? enemy.moveIfReady(now, gameContext) : { moved:
-      false, ateFood: false };\r
-
-      \r
-
-      \  // Capture frame when either snake moves\r
-
-      \  if (pRes.moved || (enemy && eRes.moved)) {\r
-
-      \    captureGameState();\r
-
-      \  }\r
-
-      \r
-
-      \  // Check collisions after both snakes have moved\r
-
-      \  if (pRes.moved) checkCollisions(player, enemy, GRID);\r
-
-      \  if (enemy && eRes.moved) checkCollisions(enemy, player, GRID);\r
-
-      \r
-
-      \  // Food handling & scoring\r
-
-      \  if (pRes.ateFood || (enemy && eRes.ateFood)) {\r
-
-      \    if (pRes.ateFood) {\r
-
-      \      bumpScore(1);\r
-
-      \      moveEatenFood(pRes.eatenFood);\r
-
-      \    }\r
-
-      \    if (enemy && eRes.ateFood) {\r
-
-      \      moveEatenFood(eRes.eatenFood);\r
-
-      \    }\r
-
-      \  }\r
-
-      \r
-
-      \  drawFood(foods);\r
-
-      \  player.draw(this, GRID.cell);\r
-
-      \  if (enemy) enemy.draw(this, GRID.cell);\r
-
-      \r
-
-      \  // Check end states\r
-
-      \  if (!player.alive || (enemy && !enemy.alive)) {\r
-
-      \    gameOver = true;\r
-
-      \    if (enemy) {\r
-
-      \      if (player.alive && !enemy.alive) winner = player;\r
-
-      \      else if (enemy.alive && !player.alive) winner = enemy;\r
-
-      \      else winner = null;\r
-
-      \    } else {\r
-
-      \      // In training mode, there's no winner when game is over\r
-
-      \      winner = null;\r
-
-      \    }\r
-
-      \  }\r
-
-      }\r
-
-      \r
-
-      // ------ World utilities ------\r
-
-      function checkCollisions(snake, otherSnake, GRID) {\r
-
-      \  if (!snake.alive) return;\r
-
-      \  const head = snake.head();\r
-
-      \  \r
-
-      \  // Wall collision: out of bounds -> dead\r
-
-      \  if (head.x < 0 || head.y < 0 || head.x >= GRID.cols || head.y >=
-      GRID.rows) {\r
-
-      \    snake.alive = false;\r
-
-      \    snake.deathCause = 'wall';\r
-
-      \    return;\r
-
-      \  }\r
-
-      \r
-
-      \  // Self collision: head hits own body (excluding head)\r
-
-      \  const collides = (cells, pt) => cells.some(c => c.x === pt.x && c.y ===
-      pt.y);\r
-
-      \  if (collides(snake.body.slice(1), head)) {\r
-
-      \    snake.alive = false;\r
-
-      \    snake.deathCause = 'self';\r
-
-      \    return;\r
-
-      \  }\r
-
-      \r
-
-      \  // Other snake collision: head hits other snake's body\r
-
-      \  if (otherSnake?.alive && collides(otherSnake.body, head)) {\r
-
-      \    snake.alive = false;\r
-
-      \    snake.deathCause = 'opponent';\r
-
-      \    return;\r
-
-      \  }\r
-
-      \r
-
-      \  // Head-to-head collision: both snakes in same cell\r
-
-      \  if (otherSnake?.alive) {\r
-
-      \    const otherHead = otherSnake.head();\r
-
-      \    if (head.x === otherHead.x && head.y === otherHead.y) {\r
-
-      \      snake.alive = false;\r
-
-      \      snake.deathCause = 'head-to-head';\r
-
-      \      otherSnake.alive = false;\r
-
-      \      otherSnake.deathCause = 'head-to-head';\r
-
-      \      return;\r
-
-      \    }\r
-
-      \  }\r
-
-      }\r
-
-      \r
-
-      function initializeFoods() {\r
-
-      \  const occupied = new Set();\r
-
-      \  const add = (c) => occupied.add(`${c.x},${c.y}`);\r
-
-      \  player.body.forEach(add);\r
-
-      \  if (enemy) enemy.body.forEach(add);\r
-
-      \r
-
-      \  foods = []; // Clear existing foods\r
-
-      \  \r
-
-      \  for (let i = 0; i < FOOD_CONFIG.count; i++) {\r
-
-      \    let x, y, tries = 0;\r
-
-      \    do {\r
-
-      \      x = Math.floor(Math.random() * GRID.cols);\r
-
-      \      y = Math.floor(Math.random() * GRID.rows);\r
-
-      \      tries++;\r
-
-      \      if (tries > 500) { \r
-
-      \        // If we can't find a spot, just place it at (0,0) and break\r
-
-      \        foods.push({x: 0, y: 0});\r
-
-      \        break;\r
-
-      \      }\r
-
-      \    } while (occupied.has(`${x},${y}`));\r
-
-      \    \r
-
-      \    if (tries <= 500) {\r
-
-      \      const newFood = { x, y };\r
-
-      \      foods.push(newFood);\r
-
-      \      occupied.add(`${x},${y}`); // Mark this position as occupied for
-      next food\r
-
-      \    }\r
-
-      \  }\r
-
-      \  \r
-
-      \  // Set the first food as the primary food for backward compatibility\r
-
-      \  if (foods.length > 0) {\r
-
-      \    food = foods[0];\r
-
-      \  } else {\r
-
-      \    food = { x: 0, y: 0 };\r
-
-      \    foods = [food];\r
-
-      \  }\r
-
-      }\r
-
-      \r
-
-      function moveEatenFood(eatenFood) {\r
-
-      \  const occupied = new Set();\r
-
-      \  const add = (c) => occupied.add(`${c.x},${c.y}`);\r
-
-      \  player.body.forEach(add);\r
-
-      \  if (enemy) enemy.body.forEach(add);\r
-
-      \  \r
-
-      \  // Add all other foods to occupied positions\r
-
-      \  foods.forEach(f => {\r
-
-      \    if (f.x !== eatenFood.x || f.y !== eatenFood.y) {\r
-
-      \      occupied.add(`${f.x},${f.y}`);\r
-
-      \    }\r
-
-      \  });\r
-
-      \r
-
-      \  let x, y, tries = 0;\r
-
-      \  do {\r
-
-      \    x = Math.floor(Math.random() * GRID.cols);\r
-
-      \    y = Math.floor(Math.random() * GRID.rows);\r
-
-      \    tries++;\r
-
-      \    if (tries > 500) { \r
-
-      \      // If we can't find a spot, just place it at (0,0)\r
-
-      \      eatenFood.x = 0;\r
-
-      \      eatenFood.y = 0;\r
-
-      \      return;\r
-
-      \    }\r
-
-      \  } while (occupied.has(`${x},${y}`));\r
-
-      \  \r
-
-      \  eatenFood.x = x;\r
-
-      \  eatenFood.y = y;\r
-
-      }\r
-
-      \r
-
-      function drawFood(f) {\r
-
-      \  // If f is an array, draw all foods\r
-
-      \  if (Array.isArray(f)) {\r
-
-      \    f.forEach(singleFood => {\r
-
-      \      push();\r
-
-      \      noStroke();\r
-
-      \      fill(FOOD_CONFIG.color); // Green for food\r
-
-      \      const s = GRID.cell;\r
-
-      \      rect(singleFood.x * s, singleFood.y * s, s, s, 4);\r
-
-      \      pop();\r
-
-      \    });\r
-
-      \  } else {\r
-
-      \    // Single food (backward compatibility)\r
-
-      \    push();\r
-
-      \    noStroke();\r
-
-      \    fill(FOOD_CONFIG.color); // Green for food\r
-
-      \    const s = GRID.cell;\r
-
-      \    rect(f.x * s, f.y * s, s, s, 4);\r
-
-      \    pop();\r
-
-      \  }\r
-
-      }\r
-
-      \r
-
-      // ------ Frame History System ------\r
-
-      function captureGameState() {\r
-
-      \  const state = {\r
-
-      \    player: {\r
-
-      \      body: [...player.body.map(seg => ({...seg}))],\r
-
-      \      alive: player.alive,\r
-
-      \      deathCause: player.deathCause,\r
-
-      \      color: player.color\r
-
-      \    },\r
-
-      \    enemy: enemy ? {\r
-
-      \      body: [...enemy.body.map(seg => ({...seg}))],\r
-
-      \      alive: enemy.alive,\r
-
-      \      deathCause: enemy.deathCause,\r
-
-      \      color: enemy.color\r
-
-      \    } : null,\r
-
-      \    food: {...food},\r
-
-      \    winner: winner,\r
-
-      \    gameOver: gameOver,\r
-
-      \    score: scoreEl ? scoreEl.textContent : '0'\r
-
-      \  };\r
-
-      \  \r
-
-      \  frameHistory.push(state);\r
-
-      \  \r
-
-      \  // Keep only last 5 frames\r
-
-      \  if (frameHistory.length > 5) {\r
-
-      \    frameHistory.shift();\r
-
-      \  }\r
-
-      }\r
-
-      \r
-
-      function enterReplayMode() {\r
-
-      \  if (frameHistory.length === 0) return;\r
-
-      \  inReplayMode = true;\r
-
-      \  currentFrameIndex = frameHistory.length - 1;\r
-
-      \  replayBannerAtTop = false;\r
-
-      \  noLoop(); // Stop the game loop\r
-
-      }\r
-
-      \r
-
-      function exitReplayMode() {\r
-
-      \  inReplayMode = false;\r
-
-      \  currentFrameIndex = -1;\r
-
-      \  if (!gamePaused) {\r
-
-      \    loop(); // Resume game loop unless paused (even if game over for UI
-      responsiveness)\r
-
-      \  }\r
-
-      }\r
-
-      \r
-
-      function stepFrame(direction) {\r
-
-      \  if (!inReplayMode || frameHistory.length === 0) return;\r
-
-      \  \r
-
-      \  if (direction === 'forward') {\r
-
-      \    currentFrameIndex = Math.min(currentFrameIndex + 1,
-      frameHistory.length - 1);\r
-
-      \  } else if (direction === 'backward') {\r
-
-      \    currentFrameIndex = Math.max(currentFrameIndex - 1, 0);\r
-
-      \  }\r
-
-      \  \r
-
-      \  redraw();\r
-
-      }\r
-
-      \r
-
-      function getCurrentFrame() {\r
-
-      \  if (!inReplayMode || currentFrameIndex < 0 || currentFrameIndex >=
-      frameHistory.length) {\r
-
-      \    return null;\r
-
-      \  }\r
-
-      \  return frameHistory[currentFrameIndex];\r
-
-      }\r
-
-      \r
-
-      function drawReplayFrame(frame) {\r
-
-      \  if (!frame) return;\r
-
-      \  \r
-
-      \  drawFood(frame.food);\r
-
-      \  \r
-
-      \  push();\r
-
-      \  noStroke();\r
-
-      \  fill(frame.player.color);\r
-
-      \  for (let i = 0; i < frame.player.body.length; i++) {\r
-
-      \    const b = frame.player.body[i];\r
-
-      \    const r = i === 0 ? 6 : 3; // roundness hint: bigger on head\r
-
-      \    rect(b.x * GRID.cell, b.y * GRID.cell, GRID.cell, GRID.cell, r);\r
-
-      \  }\r
-
-      \  pop();\r
-
-      \  \r
-
-      \  if (frame.enemy) {\r
-
-      \    push();\r
-
-      \    noStroke();\r
-
-      \    fill(frame.enemy.color);\r
-
-      \    for (let i = 0; i < frame.enemy.body.length; i++) {\r
-
-      \      const b = frame.enemy.body[i];\r
-
-      \      const r = i === 0 ? 6 : 3; // roundness hint: bigger on head\r
-
-      \      rect(b.x * GRID.cell, b.y * GRID.cell, GRID.cell, GRID.cell, r);\r
-
-      \    }\r
-
-      \    pop();\r
-
-      \  }\r
-
-      }\r
-
-      \r
-
-      function drawReplayControls() {\r
-
-      \  push();\r
-
-      \  noStroke();\r
-
-      \  fill(0, 180); // Semi-transparent overlay\r
-
-      \  const bannerHeight = 80;\r
-
-      \  const bannerY = replayBannerAtTop ? 0 : height - bannerHeight;\r
-
-      \  rect(0, bannerY, width, bannerHeight);\r
-
-      \  \r
-
-      \  fill(255, 220);\r
-
-      \  textAlign(CENTER, CENTER);\r
-
-      \  textSize(14);\r
-
-      \  text(`Frame Replay Mode - Frame ${currentFrameIndex + 1} of
-      ${frameHistory.length}`, width/2, bannerY + 20);\r
-
-      \  textSize(12);\r
-
-      \  text('← → Arrow keys to navigate frames • F to exit replay • R to
-      restart', width/2, bannerY + 45);\r
-
-      \  text('↑ ↓ Move this banner • (Pause disabled in replay mode)', width/2,
-      bannerY + 65);\r
-
-      \  pop();\r
-
-      }\r
-
-      \r
-
-      function drawGrid() {\r
-
-      \  push();\r
-
-      \  stroke(255, 20);\r
-
-      \  strokeWeight(1);\r
-
-      \  for (let x = 1; x < GRID.cols; x++) line(x * GRID.cell, 0, x *
-      GRID.cell, height);\r
-
-      \  for (let y = 1; y < GRID.rows; y++) line(0, y * GRID.cell, width, y *
-      GRID.cell);\r
-
-      \  pop();\r
-
-      }\r
-
-      \r
-
-      function drawGameOver() {\r
-
-      \  const blinkOn = floor(millis() / 400) % 2 === 0;\r
-
-      \r
-
-      \  if (!player.alive || winner === player) {\r
-
-      \    if (winner === player) {\r
-
-      \      if (blinkOn) player.draw(this, GRID.cell);\r
-
-      \    } else {\r
-
-      \      player.draw(this, GRID.cell);\r
-
-      \    }\r
-
-      \  }\r
-
-      \  if (enemy && (!enemy.alive || winner === enemy)) {\r
-
-      \    if (winner === enemy) {\r
-
-      \      if (blinkOn) enemy.draw(this, GRID.cell);\r
-
-      \    } else {\r
-
-      \      enemy.draw(this, GRID.cell);\r
-
-      \    }\r
-
-      \  }\r
-
-      \r
-
-      \  push();\r
-
-      \  noStroke();\r
-
-      \  fill(255, 220);\r
-
-      \  rect(0, height/2 - 60, width, 120);\r
-
-      \  fill(0);\r
-
-      \  textAlign(CENTER, CENTER);\r
-
-      \  textSize(18);\r
-
-      \r
-
-      \  let line1 = '';\r
-
-      \  let line2 = '';\r
-
-      \  let line3 = 'Press R to restart.';\r
-
-      \  let line4 = frameHistory.length > 0 ? 'Press F to view replay frames.'
-      : '';\r
-
-      \  \r
-
-      \  if (trainingMode) {\r
-
-      \    line1 = 'Training Complete';\r
-
-      \    line2 = player.alive ? '' : `${PLAYER_CONFIG.id}
-      ${getDeathMessage(player.deathCause)}`;\r
-
-      \  } else if (!player.alive && !enemy.alive) {\r
-
-      \    if (player.deathCause === 'head-to-head' && enemy.deathCause ===
-      'head-to-head') {\r
-
-      \      line1 = 'Head-to-head collision!';\r
-
-      \      line2 = 'Both players crashed!';\r
-
-      \    } else {\r
-
-      \      line1 = 'Both players crashed!';\r
-
-      \      line2 = '';\r
-
-      \    }\r
-
-      \  } else if (winner === player) {\r
-
-      \    line1 = `${PLAYER_CONFIG.id} Wins!`;\r
-
-      \    line2 = `${ENEMY_CONFIG.id} ${getDeathMessage(enemy.deathCause)}`;\r
-
-      \  } else if (winner === enemy) {\r
-
-      \    line1 = `${ENEMY_CONFIG.id} Wins!`;\r
-
-      \    line2 = `${PLAYER_CONFIG.id}
-      ${getDeathMessage(player.deathCause)}`;\r
-
-      \  }\r
-
-      \r
-
-      \  text(line1, width/2, height/2 - 30);\r
-
-      \  if (line2) text(line2, width/2, height/2 - 10);\r
-
-      \  text(line3, width/2, height/2 + 10);\r
-
-      \  if (line4) {\r
-
-      \    textSize(14);\r
-
-      \    text(line4, width/2, height/2 + 30);\r
-
-      \  }\r
-
-      \  pop();\r
-
-      }\r
-
-      \r
-
-      function getDeathMessage(deathCause) {\r
-
-      \  switch (deathCause) {\r
-
-      \    case 'wall':\r
-
-      \      return 'crashed into a wall.';\r
-
-      \    case 'self':\r
-
-      \      return 'crashed into themselves.';\r
-
-      \    case 'opponent':\r
-
-      \      return 'crashed into their opponent.';\r
-
-      \    case 'head-to-head':\r
-
-      \      return 'collided head-to-head.';\r
-
-      \    default:\r
-
-      \      return 'crashed.';\r
-
-      \  }\r
-
-      }\r
-
-      \r
-
-      function bumpScore(n) {\r
-
-      \  const m = scoreEl;\r
-
-      \  if (!m) return;\r
-
-      \  const prev = Number(m.dataset.score || '0');\r
-
-      \  const curr = prev + n;\r
-
-      \  m.dataset.score = String(curr);\r
-
-      \  m.textContent = `${curr}`;\r
-
-      }\r
-
-      \r
-
-      function updateSpeed() {\r
-
-      \  const sliderValue = parseInt(speedSlider.value); // 0-100\r
-
-      \  const scale = calculateSpeedScale(sliderValue);\r
-
-      \  speedValue.textContent = `${scale.toFixed(1)}x`;\r
-
-      \  \r
-
-      \  // Update both snakes' speed using proportional scaling\r
-
-      \  if (player) player.stepMs = scaleSpeed(SPEED_CONFIG.playerBaseMs,
-      scale);\r
-
-      \  if (enemy) enemy.stepMs = scaleSpeed(SPEED_CONFIG.enemyBaseMs,
-      scale);\r
-
-      }\r
-
-      \r
-
-      // Convert slider value (0-100) to speed scale\r
-
-      function calculateSpeedScale(sliderValue) {\r
-
-      \  // Slider: 0 (snail/slow) to 100 (rabbit/fast)\r
-
-      \  // Scale: high multiplier (slow) to low multiplier (fast)\r
-
-      \  \r
-
-      \  // Find the maximum possible scale for the slower snake (enemy)\r
-
-      \  const maxScale = SPEED_CONFIG.maxMs / SPEED_CONFIG.enemyBaseMs;\r
-
-      \  const minScale = SPEED_CONFIG.minMs / SPEED_CONFIG.playerBaseMs;\r
-
-      \  \r
-
-      \  // Invert slider: 0 = fast (min scale), 100 = slow (max scale)\r
-
-      \  const normalizedValue = (100 - sliderValue) / 100; // 0 to 1\r
-
-      \  return minScale + (normalizedValue * (maxScale - minScale));\r
-
-      }\r
-
-      \r
-
-      // Apply scale to a base speed, ensuring it stays within limits\r
-
-      function scaleSpeed(baseMs, scale) {\r
-
-      \  const scaled = Math.round(baseMs * scale);\r
-
-      \  return Math.max(SPEED_CONFIG.minMs, Math.min(SPEED_CONFIG.maxMs,
-      scaled));\r
-
-      }\r
-
-      \r
-
-      // ------ Restart logic ------\r
-
-      function startNewGame() {\r
-
-      \  // Calculate current speed scale from slider\r
-
-      \  const sliderValue = speedSlider ? parseInt(speedSlider.value) : 50; //
-      Default to middle\r
-
-      \  const scale = calculateSpeedScale(sliderValue);\r
-
-      \  \r
-
-      \  player = new Snake({\r
-
-      \    ...PLAYER_CONFIG,\r
-
-      \    stepMs: scaleSpeed(SPEED_CONFIG.playerBaseMs, scale)\r
-
-      \  });\r
-
-      \  \r
-
-      \  // Only create enemy when not in training mode\r
-
-      \  if (!trainingMode) {\r
-
-      \    enemy = new Snake({\r
-
-      \      ...ENEMY_CONFIG,\r
-
-      \      stepMs: scaleSpeed(SPEED_CONFIG.enemyBaseMs, scale)\r
-
-      \    });\r
-
-      \  } else {\r
-
-      \    enemy = undefined; // Ensure enemy is undefined in training mode\r
-
-      \  }\r
-
-      \r
-
-      \  winner = null;\r
-
-      \  gameOver = false;\r
-
-      \  gamePaused = false;\r
-
-      \r
-
-      \  frameHistory = [];\r
-
-      \  exitReplayMode();\r
-
-      \r
-
-      \  game.player = player;\r
-
-      \  game.enemy = enemy;\r
-
-      \  game.food = food;\r
-
-      \r
-
-      \  scoreEl.dataset.score = '0';\r
-
-      \  scoreEl.textContent = '0';\r
-
-      \r
-
-      \  initializeFoods();\r
-
-      \  updatePauseButton();\r
-
-      \r
-
-      \  loop();\r
-
-      }\r
-
-      \r
-
-      function resetGame() {\r
-
-      \  startNewGame();\r
-
-      }\r
-
-      \r
-
-      function togglePause() {\r
-
-      \  if (gameOver || inReplayMode) return; // Can't pause when game is over
-      or in replay mode\r
-
-      \  \r
-
-      \  gamePaused = !gamePaused;\r
-
-      \  updatePauseButton();\r
-
-      \  \r
-
-      \  if (gamePaused) {\r
-
-      \    noLoop();\r
-
-      \  } else {\r
-
-      \    loop();\r
-
-      \  }\r
-
-      }\r
-
-      \r
-
-      function updatePauseButton() {\r
-
-      \  const pauseEmoji = document.getElementById('pause-emoji');\r
-
-      \  const pauseLabel = document.getElementById('pause-label');\r
-
-      \  \r
-
-      \  if (gamePaused) {\r
-
-      \    pauseEmoji.textContent = '▶️';\r
-
-      \    pauseLabel.textContent = 'Resume';\r
-
-      \  } else {\r
-
-      \    pauseEmoji.textContent = '⏸️';\r
-
-      \    pauseLabel.textContent = 'Pause';\r
-
-      \  }\r
-
-      }\r
-
-      \r
-
-      function drawPauseOverlay() {\r
-
-      \  push();\r
-
-      \  noStroke();\r
-
-      \  fill(0, 150); // Semi-transparent overlay\r
-
-      \  rect(0, 0, width, height);\r
-
-      \  \r
-
-      \  fill(255, 220);\r
-
-      \  rect(0, height/2 - 30, width, 60);\r
-
-      \  \r
-
-      \  fill(0);\r
-
-      \  textAlign(CENTER, CENTER);\r
-
-      \  textSize(18);\r
-
-      \  text('Game Paused', width/2, height/2 - 10);\r
-
-      \  textSize(14);\r
-
-      \  text('Press SPACE or click Resume to continue', width/2, height/2 +
-      10);\r
-
-      \  pop();\r
-
-      }\r
-
-      \r
-
-      function keyPressed() {\r
-
-      \  if (key.toLowerCase() === 'r') {\r
-
-      \    resetGame();\r
-
-      \  } else if (key === ' ') {\r
-
-      \    if (!inReplayMode) {\r
-
-      \      togglePause();\r
-
-      \    }\r
-
-      \  } else if (key.toLowerCase() === 'f') {\r
-
-      \    if (inReplayMode) {\r
-
-      \      exitReplayMode();\r
-
-      \      redraw();\r
-
-      \    } else if (gameOver && frameHistory.length > 0) {\r
-
-      \      enterReplayMode();\r
-
-      \    }\r
-
-      \  } else if (keyCode === 37) {\r
-
-      \    if (inReplayMode) {\r
-
-      \      stepFrame('backward');\r
-
-      \    }\r
-
-      \  } else if (keyCode === 39) {\r
-
-      \    if (inReplayMode) {\r
-
-      \      stepFrame('forward');\r
-
-      \    }\r
-
-      \  } else if (keyCode === 38) {\r
-
-      \    if (inReplayMode) {\r
-
-      \      replayBannerAtTop = true;\r
-
-      \      redraw();\r
-
-      \    }\r
-
-      \  } else if (keyCode === 40) {\r
-
-      \    if (inReplayMode) {\r
-
-      \      replayBannerAtTop = false;\r
-
-      \      redraw();\r
-
-      \    }\r
-
-      \  }\r
-
-      }\r\n"
-  - path: course1/unit1/lesson1/lessonpart5/game.js
-    content: "// ------ Grid & Canvas ------\r
-
-      const GRID = {\r
-
-      \  cell: 20,\r
-
-      \  cols: 20,\r
-
-      \  rows: 20,\r
-
-      \  center: { x: Math.floor(20 / 2), y: Math.floor(20 / 2) }\r
-
-      };\r
-
-      let canvasW = GRID.cols * GRID.cell;\r
-
-      let canvasH = GRID.rows * GRID.cell;\r
 
       \r
 
@@ -1756,8 +402,6 @@ files:
       let gameOver = false;\r
 
       let gamePaused = false;\r
-
-      let trainingMode = false; // Boolean flag to control training mode\r
 
       \r
 
@@ -1859,7 +503,7 @@ files:
 
       \  color: '#ef4444',\r
 
-      \  size: 8,\r
+      \  size: 3,\r
 
       \  direction: { x: -1, y: 0 },\r
 
@@ -1876,6 +520,8 @@ files:
       window.ENEMY_CONFIG = ENEMY_CONFIG;\r
 
       window.FOOD_CONFIG = FOOD_CONFIG;\r
+
+      window.GAME_CONFIG = GAME_CONFIG;\r
 
       \r
 
@@ -1938,6 +584,8 @@ files:
       \  });\r
 
       \  \r
+
+      \  // Start the game (which will initialize series state if needed)\r
 
       \  startNewGame();\r
 
@@ -2126,6 +774,54 @@ files:
       \      else if (enemy.alive && !player.alive) winner = enemy;\r
 
       \      else winner = null;\r
+
+      \      \r
+
+      \      // Update series state if series is active\r
+
+      \      if (seriesState.active) {\r
+
+      \        seriesState.gamesPlayed++;\r
+
+      \        \r
+
+      \        if (winner === player) {\r
+
+      \          seriesState.playerWins++;\r
+
+      \        } else if (winner === enemy) {\r
+
+      \          seriesState.enemyWins++;\r
+
+      \        }\r
+
+      \        \r
+
+      \        // Check if series is complete\r
+
+      \        if (seriesState.playerWins >= GAME_CONFIG.series.winsToWin || \r
+
+      \            seriesState.enemyWins >= GAME_CONFIG.series.winsToWin) {\r
+
+      \          seriesState.seriesOver = true;\r
+
+      \          if (seriesState.playerWins > seriesState.enemyWins) {\r
+
+      \            seriesState.seriesWinner = player;\r
+
+      \          } else if (seriesState.enemyWins > seriesState.playerWins) {\r
+
+      \            seriesState.seriesWinner = enemy;\r
+
+      \          } else {\r
+
+      \            seriesState.seriesWinner = null; // Tie\r
+
+      \          }\r
+
+      \        }\r
+
+      \      }\r
 
       \    } else {\r
 
@@ -2715,6 +1411,8 @@ files:
 
       \r
 
+      \  // Draw the snakes\r
+
       \  if (!player.alive || winner === player) {\r
 
       \    if (winner === player) {\r
@@ -2751,32 +1449,43 @@ files:
 
       \  fill(255, 220);\r
 
-      \  rect(0, height/2 - 60, width, 120);\r
+      \  \r
+
+      \  // Make the overlay taller for series information\r
+
+      \  const overlayHeight = seriesState.active ? 150 : 120;\r
+
+      \  rect(0, height/2 - overlayHeight/2, width, overlayHeight);\r
+
+      \  \r
 
       \  fill(0);\r
 
       \  textAlign(CENTER, CENTER);\r
 
-      \  textSize(18);\r
+      \  textSize(22); // Larger text for winner\r
 
       \r
 
-      \  let line1 = '';\r
+      \  let line1 = ''; // Winner announcement\r
 
-      \  let line2 = '';\r
+      \  let line2 = ''; // Series score\r
 
-      \  let line3 = 'Press R to restart.';\r
+      \  let line3 = ''; // Death message\r
 
-      \  let line4 = frameHistory.length > 0 ? 'Press F to view replay frames.'
-      : '';\r
+      \  let line4 = ''; // Series winner (if applicable)\r
+
+      \  let instructionsText = '';\r
 
       \  \r
 
-      \  if (trainingMode) {\r
+      \  // Set game outcome text\r
 
-      \    line1 = 'Training Complete';\r
+      \  if (GAME_CONFIG.trainingMode) {\r
 
-      \    line2 = player.alive ? '' : `${PLAYER_CONFIG.id}
+      \    line1 = 'TRAINING COMPLETE';\r
+
+      \    line3 = player.alive ? '' : `${PLAYER_CONFIG.id}
       ${getDeathMessage(player.deathCause)}`;\r
 
       \  } else if (!player.alive && !enemy.alive) {\r
@@ -2784,46 +1493,167 @@ files:
       \    if (player.deathCause === 'head-to-head' && enemy.deathCause ===
       'head-to-head') {\r
 
-      \      line1 = 'Head-to-head collision!';\r
+      \      line1 = 'HEAD-TO-HEAD COLLISION!';\r
 
-      \      line2 = 'Both players crashed!';\r
+      \      line3 = 'Both players crashed!';\r
 
       \    } else {\r
 
-      \      line1 = 'Both players crashed!';\r
-
-      \      line2 = '';\r
+      \      line1 = 'BOTH PLAYERS CRASHED!';\r
 
       \    }\r
 
       \  } else if (winner === player) {\r
 
-      \    line1 = `${PLAYER_CONFIG.id} Wins!`;\r
+      \    line1 = `${PLAYER_CONFIG.id.toUpperCase()} WINS!`;\r
 
-      \    line2 = `${ENEMY_CONFIG.id} ${getDeathMessage(enemy.deathCause)}`;\r
+      \    line3 = `${ENEMY_CONFIG.id} ${getDeathMessage(enemy.deathCause)}`;\r
 
       \  } else if (winner === enemy) {\r
 
-      \    line1 = `${ENEMY_CONFIG.id} Wins!`;\r
+      \    line1 = `${ENEMY_CONFIG.id.toUpperCase()} WINS!`;\r
 
-      \    line2 = `${PLAYER_CONFIG.id}
+      \    line3 = `${PLAYER_CONFIG.id}
       ${getDeathMessage(player.deathCause)}`;\r
 
       \  }\r
 
-      \r
+      \  \r
 
-      \  text(line1, width/2, height/2 - 30);\r
+      \  // Set instructions text\r
 
-      \  if (line2) text(line2, width/2, height/2 - 10);\r
+      \  if (GAME_CONFIG.trainingMode) {\r
 
-      \  text(line3, width/2, height/2 + 10);\r
+      \    instructionsText = 'R: Restart';\r
 
-      \  if (line4) {\r
+      \  } else if (seriesState.active) {\r
 
-      \    textSize(14);\r
+      \    if (seriesState.seriesOver) {\r
 
-      \    text(line4, width/2, height/2 + 30);\r
+      \      instructionsText = 'R: Start New Series';\r
+
+      \    } else {\r
+
+      \      instructionsText = '\\nENTER: Continue\\nR: Reset';\r
+
+      \    }\r
+
+      \  } else {\r
+
+      \    instructionsText = 'R: Restart';\r
+
+      \  }\r
+
+      \  \r
+
+      \  // Add replay option if available\r
+
+      \  if (frameHistory.length > 0) {\r
+
+      \    instructionsText += '\\nF: Replay Mode';\r
+
+      \  }\r
+
+      \  \r
+
+      \  // Add series information if active\r
+
+      \  if (seriesState.active) {\r
+
+      \    // Series score in new format\r
+
+      \    line2 = `${PLAYER_CONFIG.id}: ${seriesState.playerWins} -
+      ${seriesState.enemyWins} ${ENEMY_CONFIG.id}`;\r
+
+      \    \r
+
+      \    // If series is over, show overall winner\r
+
+      \    if (seriesState.seriesOver) {\r
+
+      \      if (seriesState.seriesWinner === player) {\r
+
+      \        line4 = `${PLAYER_CONFIG.id.toUpperCase()} WINS THE SERIES!`;\r
+
+      \      } else if (seriesState.seriesWinner === enemy) {\r
+
+      \        line4 = `${ENEMY_CONFIG.id.toUpperCase()} WINS THE SERIES!`;\r
+
+      \      } else {\r
+
+      \        line4 = `SERIES ENDS IN A TIE!`;\r
+
+      \      }\r
+
+      \    }\r
+
+      \    \r
+
+      \    // Display all information with updated positioning\r
+
+      \    text(line1, width/2, height/2 - overlayHeight/2 + 35); // Winner
+      announcement at top\r
+
+      \    \r
+
+      \    textSize(18);\r
+
+      \    text(line2, width/2, height/2 - overlayHeight/2 + 65); // Series
+      score\r
+
+      \    \r
+
+      \    textSize(16);\r
+
+      \    text(line3, width/2, height/2 - overlayHeight/2 + 90); // Death
+      message\r
+
+      \    \r
+
+      \    if (line4) {\r
+
+      \      textSize(20);\r
+
+      \      text(line4, width/2, height/2 + 5); // Series winner\r
+
+      \    }\r
+
+      \    \r
+
+      \    // Instructions at bottom in smaller text\r
+
+      \    textSize(12);\r
+
+      \    textAlign(LEFT, CENTER);\r
+
+      \    text(instructionsText, width/2 - 60, height/2 + overlayHeight/2 -
+      30);\r
+
+      \    textAlign(CENTER, CENTER);\r
+
+      \  } else {\r
+
+      \    // Non-series mode positioning\r
+
+      \    text(line1, width/2, height/2 - 40); // Winner announcement\r
+
+      \    \r
+
+      \    textSize(16);\r
+
+      \    text(line3, width/2, height/2 - 10); // Death message\r
+
+      \    \r
+
+      \    // Instructions at bottom in smaller text\r
+
+      \    textSize(12);\r
+
+      \    textAlign(LEFT, CENTER);\r
+
+      \    text(instructionsText, width/2 - 60, height/2 + 30);\r
+
+      \    textAlign(CENTER, CENTER);\r
 
       \  }\r
 
@@ -2950,7 +1780,38 @@ files:
 
       // ------ Restart logic ------\r
 
-      function startNewGame() {\r
+      // Initialize series state\r
+
+      function resetSeriesState() {\r
+
+      \  // Series is never active in training mode\r
+
+      \  const isSeriesActive = GAME_CONFIG.series.enabled &&
+      !GAME_CONFIG.trainingMode;\r
+
+      \  \r
+
+      \  seriesState = {\r
+
+      \    active: isSeriesActive,\r
+
+      \    playerWins: 0,\r
+
+      \    enemyWins: 0,\r
+
+      \    gamesPlayed: 0,\r
+
+      \    seriesWinner: null,\r
+
+      \    seriesOver: false\r
+
+      \  };\r
+
+      }\r
+
+      \r
+
+      function startNewGame(continueSeriesMode = false) {\r
 
       \  // Calculate current speed scale from slider\r
 
@@ -2973,7 +1834,7 @@ files:
 
       \  // Only create enemy when not in training mode\r
 
-      \  if (!trainingMode) {\r
+      \  if (!GAME_CONFIG.trainingMode) {\r
 
       \    enemy = new Snake({\r
 
@@ -2983,9 +1844,29 @@ files:
 
       \    });\r
 
+      \    \r
+
+      \    // Initialize or continue series when not in training mode\r
+
+      \    if (GAME_CONFIG.series.enabled) {\r
+
+      \      if (!continueSeriesMode) {\r
+
+      \        // Start fresh series\r
+
+      \        resetSeriesState();\r
+
+      \      }\r
+
+      \      seriesState.active = true;\r
+
+      \    }\r
+
       \  } else {\r
 
       \    enemy = undefined; // Ensure enemy is undefined in training mode\r
+
+      \    seriesState.active = false;\r
 
       \  }\r
 
@@ -3033,7 +1914,21 @@ files:
 
       function resetGame() {\r
 
-      \  startNewGame();\r
+      \  startNewGame(false); // false = don't continue series, start fresh\r
+
+      }\r
+
+      \r
+
+      // Continue series (used by Enter key)\r
+
+      function continueGame() {\r
+
+      \  if (gameOver && seriesState.active && !seriesState.seriesOver) {\r
+
+      \    startNewGame(true); // true = continue series\r
+
+      \  }\r
 
       }\r
 
@@ -3134,6 +2029,1788 @@ files:
       \  if (key.toLowerCase() === 'r') {\r
 
       \    resetGame();\r
+
+      \  } else if (keyCode === ENTER || keyCode === RETURN) {\r
+
+      \    continueGame();\r
+
+      \  } else if (key === ' ') {\r
+
+      \    if (!inReplayMode) {\r
+
+      \      togglePause();\r
+
+      \    }\r
+
+      \  } else if (key.toLowerCase() === 'f') {\r
+
+      \    if (inReplayMode) {\r
+
+      \      exitReplayMode();\r
+
+      \      redraw();\r
+
+      \    } else if (gameOver && frameHistory.length > 0) {\r
+
+      \      enterReplayMode();\r
+
+      \    }\r
+
+      \  } else if (keyCode === 37) {\r
+
+      \    if (inReplayMode) {\r
+
+      \      stepFrame('backward');\r
+
+      \    }\r
+
+      \  } else if (keyCode === 39) {\r
+
+      \    if (inReplayMode) {\r
+
+      \      stepFrame('forward');\r
+
+      \    }\r
+
+      \  } else if (keyCode === 38) {\r
+
+      \    if (inReplayMode) {\r
+
+      \      replayBannerAtTop = true;\r
+
+      \      redraw();\r
+
+      \    }\r
+
+      \  } else if (keyCode === 40) {\r
+
+      \    if (inReplayMode) {\r
+
+      \      replayBannerAtTop = false;\r
+
+      \      redraw();\r
+
+      \    }\r
+
+      \  }\r
+
+      }\r\n"
+  - path: course1/unit1/lesson1/lessonpart5/game.js
+    content: "// ------ Grid & Canvas ------\r
+
+      const GRID = {\r
+
+      \  cell: 20,\r
+
+      \  cols: 20,\r
+
+      \  rows: 20,\r
+
+      \  center: { x: Math.floor(20 / 2), y: Math.floor(20 / 2) }\r
+
+      };\r
+
+      let canvasW = GRID.cols * GRID.cell;\r
+
+      let canvasH = GRID.rows * GRID.cell;\r
+
+      \r
+
+      // ------ Game Configuration ------\r
+
+      const GAME_CONFIG = {\r
+
+      \  // Series settings\r
+
+      \  series: {\r
+
+      \    enabled: true,              // Enable/disable series mode (ignored in
+      training mode)\r
+
+      \    winsToWin: 3,               // First to X wins\r
+
+      \    resetBetweenGames: true     // Whether to reset the canvas between
+      games\r
+
+      \  },\r
+
+      \  // Training mode setting\r
+
+      \  trainingMode: false,          // Whether we're in training mode (no
+      enemy, series disabled)\r
+
+      };\r
+
+      \r
+
+      // ------ Series State ------\r
+
+      let seriesState = {\r
+
+      \  active: false,                // Whether a series is active\r
+
+      \  playerWins: 0,                // Number of wins for player\r
+
+      \  enemyWins: 0,                 // Number of wins for enemy\r
+
+      \  gamesPlayed: 0,               // Number of games played in series\r
+
+      \  seriesWinner: null,           // Overall series winner\r
+
+      \  seriesOver: false             // Whether the series is complete\r
+
+      };\r
+
+      \r
+
+      // ------ Game State ------\r
+
+      let player, enemy;\r
+
+      let food = { x: 0, y: 0 };\r
+
+      let allFood = []; // Array of all foods, foods[0] should always be food\r
+
+      let scoreEl;\r
+
+      let speedSlider, speedValue;\r
+
+      let winner = null;\r
+
+      let gameOver = false;\r
+
+      let gamePaused = false;\r
+
+      \r
+
+      // ------ Frame History System ------\r
+
+      let frameHistory = [];\r
+
+      let currentFrameIndex = -1\r
+
+      let inReplayMode = false;\r
+
+      let replayBannerAtTop = false;\r
+
+      \r
+
+      // Global game object accessible to AIs\r
+
+      let game = {\r
+
+      \  food: { x: 0, y: 0 },\r
+
+      \  foods: [], // Array of all foods\r
+
+      \  player: null,\r
+
+      \  enemy: null,\r
+
+      \  GRID: GRID\r
+
+      };\r
+
+      window.game = game;\r
+
+      \r
+
+      // ------ Speed Configuration ------\r
+
+      const SPEED_CONFIG = {\r
+
+      \  get playerBaseMs() { return PLAYER_CONFIG.baseMs; }, // Reference
+      player speed from PLAYER_CONFIG\r
+
+      \  get enemyBaseMs() { return ENEMY_CONFIG.baseMs; }, // Reference enemy
+      speed from ENEMY_CONFIG\r
+
+      \  minMs: 10,\r
+
+      \  maxMs: 1000,\r
+
+      \  defaultScale: 1.0\r
+
+      };\r
+
+      \r
+
+      // ------ Player Configuration ------\r
+
+      const PLAYER_CONFIG = {\r
+
+      \  id: 'SnakeBot',\r
+
+      \  start: { x: 3, y: 10 },\r
+
+      \  color: '#3b82f6',\r
+
+      \  size: 3,\r
+
+      \  direction: { x: 1, y: 0 },\r
+
+      \  baseMs: 200\r
+
+      };\r
+
+      \r
+
+      // ------ Food Configuration ------\r
+
+      const FOOD_CONFIG = {\r
+
+      \  foodCount: 1,\r
+
+      \  poisonCount: 0,\r
+
+      \  foodColor: '#22c55e',\r
+
+      \  poisonColor: '#9333ea'\r
+
+      };\r
+
+      \r
+
+      // ------ Enemy Configuration ------\r
+
+      const ENEMY_CONFIG = {\r
+
+      \  id: 'Enemy',\r
+
+      \  start: { x: 16, y: 10 },\r
+
+      \  color: '#f3882aff',\r
+
+      \  size: 3,\r
+
+      \  direction: { x: -1, y: 0 },\r
+
+      \  baseMs: 200\r
+
+      };\r
+
+      \r
+
+      // Make configs accessible globally\r
+
+      window.PLAYER_CONFIG = PLAYER_CONFIG;\r
+
+      window.ENEMY_CONFIG = ENEMY_CONFIG;\r
+
+      window.FOOD_CONFIG = FOOD_CONFIG;\r
+
+      window.GAME_CONFIG = GAME_CONFIG;\r
+
+      \r
+
+      const Direction = {\r
+
+      \  UP: { x: 0, y: -1 },\r
+
+      \  DOWN: { x: 0, y: 1 }, \r
+
+      \  LEFT: { x: -1, y: 0 },\r
+
+      \  RIGHT: { x: 1, y: 0 }\r
+
+      };\r
+
+      window.Direction = Direction;\r
+
+      \r
+
+      // ------ p5: setup & draw ------\r
+
+      function setup() {\r
+
+      \  const c = createCanvas(canvasW, canvasH);\r
+
+      \  c.parent('p5-holder');\r
+
+      \  pixelDensity(1);\r
+
+      \r
+
+      \  scoreEl = document.getElementById('score');\r
+
+      \  speedSlider = document.getElementById('speed-slider');\r
+
+      \  speedValue = document.getElementById('speed-value');\r
+
+      \  \r
+
+      \  speedSlider.addEventListener('input', updateSpeed);\r
+
+      \  \r
+
+      \  const resetBtn = document.getElementById('reset-btn');\r
+
+      \  resetBtn.addEventListener('click', resetGame);\r
+
+      \  \r
+
+      \  const pauseBtn = document.getElementById('pause-btn');\r
+
+      \  pauseBtn.addEventListener('click', () => {\r
+
+      \    togglePause();\r
+
+      \    // Remove focus to prevent spacebar from triggering button\r
+
+      \    pauseBtn.blur();\r
+
+      \  });\r
+
+      \  \r
+
+      \  // Start the game (which will initialize series state if needed)\r
+
+      \  startNewGame();\r
+
+      }\r
+
+      \r
+
+      function draw() {\r
+
+      \  background('#0b0b0b');\r
+
+      \  drawGrid();\r
+
+      \r
+
+      \  // If in replay mode, show frame replay instead of normal game\r
+
+      \  if (inReplayMode) {\r
+
+      \    const currentFrame = getCurrentFrame();\r
+
+      \    if (currentFrame) {\r
+
+      \      drawReplayFrame(currentFrame);\r
+
+      \    }\r
+
+      \    drawReplayControls();\r
+
+      \    return;\r
+
+      \  }\r
+
+      \r
+
+      \  // If game is paused, draw everything frozen and show pause overlay\r
+
+      \  if (gamePaused) {\r
+
+      \    drawFood(allFood);\r
+
+      \    player.draw(this, GRID.cell);\r
+
+      \    if (enemy) enemy.draw(this, GRID.cell);\r
+
+      \    drawPauseOverlay();\r
+
+      \    return;\r
+
+      \  }\r
+
+      \r
+
+      \  // If game over, draw frozen snakes + winner blinking + option to enter
+      replay\r
+
+      \  if (gameOver) {\r
+
+      \    drawFood(allFood);\r
+
+      \    drawGameOver();\r
+
+      \    return;\r
+
+      \  }\r
+
+      \r
+
+      \  // Update global game object before running AIs\r
+
+      \  game.food = food;\r
+
+      \  game.foods = allFood;\r
+
+      \  game.player = player;\r
+
+      \  game.enemy = enemy;\r
+
+      \r
+
+      \  // Run AIs and capture their direction decisions\r
+
+      \  if (player.alive) {\r
+
+      \    const playerDirection = window.playerAI(player);\r
+
+      \    if (playerDirection) {\r
+
+      \      player.setDirection(playerDirection);\r
+
+      \    }\r
+
+      \  }\r
+
+      \  if (enemy && enemy.alive) {\r
+
+      \    const enemyDirection = window.enemyAI(enemy);\r
+
+      \    if (enemyDirection) {\r
+
+      \      enemy.setDirection(enemyDirection);\r
+
+      \    }\r
+
+      \  }\r
+
+      \r
+
+      \  // Advance snakes\r
+
+      \  const now = millis();\r
+
+      \  const gameContext = { food, foods: allFood, enemy, player, GRID };\r
+
+      \  const pRes = player.moveIfReady(now, gameContext);\r
+
+      \  const eRes = enemy ? enemy.moveIfReady(now, gameContext) : { moved:
+      false, ateFood: false };\r
+
+      \r
+
+      \  // Capture frame when either snake moves\r
+
+      \  if (pRes.moved || (enemy && eRes.moved)) {\r
+
+      \    captureGameState();\r
+
+      \  }\r
+
+      \r
+
+      \  // Check collisions after both snakes have moved\r
+
+      \  if (pRes.moved) checkCollisions(player, enemy, GRID);\r
+
+      \  if (enemy && eRes.moved) checkCollisions(enemy, player, GRID);\r
+
+      \r
+
+      \  // Food handling & scoring\r
+
+      \  if (pRes.ateFood || (enemy && eRes.ateFood)) {\r
+
+      \    if (pRes.ateFood) {\r
+
+      \      // Only increase score for regular food, not poison\r
+
+      \      if (!pRes.atePoison) {\r
+
+      \        bumpScore(1);\r
+
+      \      }\r
+
+      \      moveEatenFood(pRes.eatenFood);\r
+
+      \    }\r
+
+      \    if (enemy && eRes.ateFood) {\r
+
+      \      moveEatenFood(eRes.eatenFood);\r
+
+      \    }\r
+
+      \  }\r
+
+      \r
+
+      \  drawFood(allFood);\r
+
+      \  player.draw(this, GRID.cell);\r
+
+      \  if (enemy) enemy.draw(this, GRID.cell);\r
+
+      \r
+
+      \  // Check end states\r
+
+      \  if (!player.alive || (enemy && !enemy.alive)) {\r
+
+      \    gameOver = true;\r
+
+      \    if (enemy) {\r
+
+      \      if (player.alive && !enemy.alive) winner = player;\r
+
+      \      else if (enemy.alive && !player.alive) winner = enemy;\r
+
+      \      else winner = null;\r
+
+      \      \r
+
+      \      // Update series state if series is active\r
+
+      \      if (seriesState.active) {\r
+
+      \        seriesState.gamesPlayed++;\r
+
+      \        \r
+
+      \        if (winner === player) {\r
+
+      \          seriesState.playerWins++;\r
+
+      \        } else if (winner === enemy) {\r
+
+      \          seriesState.enemyWins++;\r
+
+      \        }\r
+
+      \        \r
+
+      \        // Check if series is complete\r
+
+      \        if (seriesState.playerWins >= GAME_CONFIG.series.winsToWin || \r
+
+      \            seriesState.enemyWins >= GAME_CONFIG.series.winsToWin) {\r
+
+      \          seriesState.seriesOver = true;\r
+
+      \          if (seriesState.playerWins > seriesState.enemyWins) {\r
+
+      \            seriesState.seriesWinner = player;\r
+
+      \          } else if (seriesState.enemyWins > seriesState.playerWins) {\r
+
+      \            seriesState.seriesWinner = enemy;\r
+
+      \          } else {\r
+
+      \            seriesState.seriesWinner = null; // Tie\r
+
+      \          }\r
+
+      \        }\r
+
+      \      }\r
+
+      \    } else {\r
+
+      \      // In training mode, there's no winner when game is over\r
+
+      \      winner = null;\r
+
+      \    }\r
+
+      \  }\r
+
+      }\r
+
+      \r
+
+      // ------ World utilities ------\r
+
+      function checkCollisions(snake, otherSnake, GRID) {\r
+
+      \  if (!snake.alive) return;\r
+
+      \  const head = snake.head();\r
+
+      \  \r
+
+      \  // Wall collision: out of bounds -> dead\r
+
+      \  if (head.x < 0 || head.y < 0 || head.x >= GRID.cols || head.y >=
+      GRID.rows) {\r
+
+      \    snake.alive = false;\r
+
+      \    snake.deathCause = 'wall';\r
+
+      \    return;\r
+
+      \  }\r
+
+      \r
+
+      \  // Self collision: head hits own body (excluding head)\r
+
+      \  const collides = (cells, pt) => cells.some(c => c.x === pt.x && c.y ===
+      pt.y);\r
+
+      \  if (collides(snake.body.slice(1), head)) {\r
+
+      \    snake.alive = false;\r
+
+      \    snake.deathCause = 'self';\r
+
+      \    return;\r
+
+      \  }\r
+
+      \r
+
+      \  // Other snake collision: head hits other snake's body\r
+
+      \  if (otherSnake?.alive && collides(otherSnake.body, head)) {\r
+
+      \    snake.alive = false;\r
+
+      \    snake.deathCause = 'opponent';\r
+
+      \    return;\r
+
+      \  }\r
+
+      \r
+
+      \  // Head-to-head collision: both snakes in same cell\r
+
+      \  if (otherSnake?.alive) {\r
+
+      \    const otherHead = otherSnake.head();\r
+
+      \    if (head.x === otherHead.x && head.y === otherHead.y) {\r
+
+      \      snake.alive = false;\r
+
+      \      snake.deathCause = 'head-to-head';\r
+
+      \      otherSnake.alive = false;\r
+
+      \      otherSnake.deathCause = 'head-to-head';\r
+
+      \      return;\r
+
+      \    }\r
+
+      \  }\r
+
+      }\r
+
+      \r
+
+      function initializeFoods() {\r
+
+      \  const occupied = new Set();\r
+
+      \  const add = (c) => occupied.add(`${c.x},${c.y}`);\r
+
+      \  player.body.forEach(add);\r
+
+      \  if (enemy) enemy.body.forEach(add);\r
+
+      \r
+
+      \  allFood = []; // Clear existing foods\r
+
+      \  \r
+
+      \  // Add regular food items\r
+
+      \  for (let i = 0; i < FOOD_CONFIG.foodCount; i++) {\r
+
+      \    let x, y, tries = 0;\r
+
+      \    do {\r
+
+      \      x = Math.floor(Math.random() * GRID.cols);\r
+
+      \      y = Math.floor(Math.random() * GRID.rows);\r
+
+      \      tries++;\r
+
+      \      if (tries > 500) { \r
+
+      \        // If we can't find a spot, just place it at (0,0) and break\r
+
+      \        allFood.push({x: 0, y: 0, type: 'food'});\r
+
+      \        break;\r
+
+      \      }\r
+
+      \    } while (occupied.has(`${x},${y}`));\r
+
+      \    \r
+
+      \    if (tries <= 500) {\r
+
+      \      const newFood = { x, y, type: 'food' };\r
+
+      \      allFood.push(newFood);\r
+
+      \      occupied.add(`${x},${y}`); // Mark this position as occupied for
+      next food\r
+
+      \    }\r
+
+      \  }\r
+
+      \  \r
+
+      \  // Add poison items\r
+
+      \  for (let i = 0; i < FOOD_CONFIG.poisonCount; i++) {\r
+
+      \    let x, y, tries = 0;\r
+
+      \    do {\r
+
+      \      x = Math.floor(Math.random() * GRID.cols);\r
+
+      \      y = Math.floor(Math.random() * GRID.rows);\r
+
+      \      tries++;\r
+
+      \      if (tries > 500) { \r
+
+      \        // If we can't find a spot, just place it at (0,0) and break\r
+
+      \        allFood.push({x: 0, y: 0, type: 'poison'});\r
+
+      \        break;\r
+
+      \      }\r
+
+      \    } while (occupied.has(`${x},${y}`));\r
+
+      \    \r
+
+      \    if (tries <= 500) {\r
+
+      \      const newFood = { x, y, type: 'poison' };\r
+
+      \      allFood.push(newFood);\r
+
+      \      occupied.add(`${x},${y}`); // Mark this position as occupied for
+      next food\r
+
+      \    }\r
+
+      \  }\r
+
+      \  \r
+
+      \  // Set the first food as the primary food for backward compatibility\r
+
+      \  if (allFood.length > 0) {\r
+
+      \    food = allFood[0];\r
+
+      \  } else {\r
+
+      \    food = { x: 0, y: 0, type: 'food' };\r
+
+      \    allFood = [food];\r
+
+      \  }\r
+
+      }\r
+
+      \r
+
+      function moveEatenFood(eatenFood) {\r
+
+      \  const occupied = new Set();\r
+
+      \  const add = (c) => occupied.add(`${c.x},${c.y}`);\r
+
+      \  player.body.forEach(add);\r
+
+      \  if (enemy) enemy.body.forEach(add);\r
+
+      \  \r
+
+      \  // Add all other foods to occupied positions\r
+
+      \  allFood.forEach(f => {\r
+
+      \    if (f.x !== eatenFood.x || f.y !== eatenFood.y) {\r
+
+      \      occupied.add(`${f.x},${f.y}`);\r
+
+      \    }\r
+
+      \  });\r
+
+      \r
+
+      \  let x, y, tries = 0;\r
+
+      \  do {\r
+
+      \    x = Math.floor(Math.random() * GRID.cols);\r
+
+      \    y = Math.floor(Math.random() * GRID.rows);\r
+
+      \    tries++;\r
+
+      \    if (tries > 500) { \r
+
+      \      // If we can't find a spot, just place it at (0,0)\r
+
+      \      eatenFood.x = 0;\r
+
+      \      eatenFood.y = 0;\r
+
+      \      return;\r
+
+      \    }\r
+
+      \  } while (occupied.has(`${x},${y}`));\r
+
+      \  \r
+
+      \  eatenFood.x = x;\r
+
+      \  eatenFood.y = y;\r
+
+      }\r
+
+      \r
+
+      function drawFood(f) {\r
+
+      \  // If f is an array, draw all foods\r
+
+      \  if (Array.isArray(f)) {\r
+
+      \    f.forEach(singleFood => {\r
+
+      \      push();\r
+
+      \      noStroke();\r
+
+      \      // Use different colors based on food type\r
+
+      \      const foodColor = singleFood.type === 'poison' \r
+
+      \        ? FOOD_CONFIG.poisonColor \r
+
+      \        : FOOD_CONFIG.foodColor;\r
+
+      \      fill(foodColor);\r
+
+      \      const s = GRID.cell;\r
+
+      \      rect(singleFood.x * s, singleFood.y * s, s, s, 4);\r
+
+      \      pop();\r
+
+      \    });\r
+
+      \  } else {\r
+
+      \    // Single food (backward compatibility)\r
+
+      \    push();\r
+
+      \    noStroke();\r
+
+      \    // Use food color as default for backward compatibility\r
+
+      \    const foodColor = f.type === 'poison' \r
+
+      \      ? FOOD_CONFIG.poisonColor \r
+
+      \      : FOOD_CONFIG.foodColor;\r
+
+      \    fill(foodColor);\r
+
+      \    const s = GRID.cell;\r
+
+      \    rect(f.x * s, f.y * s, s, s, 4);\r
+
+      \    pop();\r
+
+      \  }\r
+
+      }\r
+
+      \r
+
+      // ------ Frame History System ------\r
+
+      function captureGameState() {\r
+
+      \  const state = {\r
+
+      \    player: {\r
+
+      \      body: [...player.body.map(seg => ({...seg}))],\r
+
+      \      alive: player.alive,\r
+
+      \      deathCause: player.deathCause,\r
+
+      \      color: player.color\r
+
+      \    },\r
+
+      \    enemy: enemy ? {\r
+
+      \      body: [...enemy.body.map(seg => ({...seg}))],\r
+
+      \      alive: enemy.alive,\r
+
+      \      deathCause: enemy.deathCause,\r
+
+      \      color: enemy.color\r
+
+      \    } : null,\r
+
+      \    food: {...food},\r
+
+      \    winner: winner,\r
+
+      \    gameOver: gameOver,\r
+
+      \    score: scoreEl ? scoreEl.textContent : '0'\r
+
+      \  };\r
+
+      \  \r
+
+      \  frameHistory.push(state);\r
+
+      \  \r
+
+      \  // Keep only last 5 frames\r
+
+      \  if (frameHistory.length > 5) {\r
+
+      \    frameHistory.shift();\r
+
+      \  }\r
+
+      }\r
+
+      \r
+
+      function enterReplayMode() {\r
+
+      \  if (frameHistory.length === 0) return;\r
+
+      \  inReplayMode = true;\r
+
+      \  currentFrameIndex = frameHistory.length - 1;\r
+
+      \  replayBannerAtTop = false;\r
+
+      \  noLoop(); // Stop the game loop\r
+
+      }\r
+
+      \r
+
+      function exitReplayMode() {\r
+
+      \  inReplayMode = false;\r
+
+      \  currentFrameIndex = -1;\r
+
+      \  if (!gamePaused) {\r
+
+      \    loop(); // Resume game loop unless paused (even if game over for UI
+      responsiveness)\r
+
+      \  }\r
+
+      }\r
+
+      \r
+
+      function stepFrame(direction) {\r
+
+      \  if (!inReplayMode || frameHistory.length === 0) return;\r
+
+      \  \r
+
+      \  if (direction === 'forward') {\r
+
+      \    currentFrameIndex = Math.min(currentFrameIndex + 1,
+      frameHistory.length - 1);\r
+
+      \  } else if (direction === 'backward') {\r
+
+      \    currentFrameIndex = Math.max(currentFrameIndex - 1, 0);\r
+
+      \  }\r
+
+      \  \r
+
+      \  redraw();\r
+
+      }\r
+
+      \r
+
+      function getCurrentFrame() {\r
+
+      \  if (!inReplayMode || currentFrameIndex < 0 || currentFrameIndex >=
+      frameHistory.length) {\r
+
+      \    return null;\r
+
+      \  }\r
+
+      \  return frameHistory[currentFrameIndex];\r
+
+      }\r
+
+      \r
+
+      function drawReplayFrame(frame) {\r
+
+      \  if (!frame) return;\r
+
+      \  \r
+
+      \  drawFood(frame.food);\r
+
+      \  \r
+
+      \  push();\r
+
+      \  noStroke();\r
+
+      \  fill(frame.player.color);\r
+
+      \  for (let i = 0; i < frame.player.body.length; i++) {\r
+
+      \    const b = frame.player.body[i];\r
+
+      \    const r = i === 0 ? 6 : 3; // roundness hint: bigger on head\r
+
+      \    rect(b.x * GRID.cell, b.y * GRID.cell, GRID.cell, GRID.cell, r);\r
+
+      \  }\r
+
+      \  pop();\r
+
+      \  \r
+
+      \  if (frame.enemy) {\r
+
+      \    push();\r
+
+      \    noStroke();\r
+
+      \    fill(frame.enemy.color);\r
+
+      \    for (let i = 0; i < frame.enemy.body.length; i++) {\r
+
+      \      const b = frame.enemy.body[i];\r
+
+      \      const r = i === 0 ? 6 : 3; // roundness hint: bigger on head\r
+
+      \      rect(b.x * GRID.cell, b.y * GRID.cell, GRID.cell, GRID.cell, r);\r
+
+      \    }\r
+
+      \    pop();\r
+
+      \  }\r
+
+      }\r
+
+      \r
+
+      function drawReplayControls() {\r
+
+      \  push();\r
+
+      \  noStroke();\r
+
+      \  fill(0, 180); // Semi-transparent overlay\r
+
+      \  const bannerHeight = 80;\r
+
+      \  const bannerY = replayBannerAtTop ? 0 : height - bannerHeight;\r
+
+      \  rect(0, bannerY, width, bannerHeight);\r
+
+      \  \r
+
+      \  fill(255, 220);\r
+
+      \  textAlign(CENTER, CENTER);\r
+
+      \  textSize(14);\r
+
+      \  text(`Frame Replay Mode - Frame ${currentFrameIndex + 1} of
+      ${frameHistory.length}`, width/2, bannerY + 20);\r
+
+      \  textSize(12);\r
+
+      \  text('← → Arrow keys to navigate frames • F to exit replay • R to
+      restart', width/2, bannerY + 45);\r
+
+      \  text('↑ ↓ Move this banner • (Pause disabled in replay mode)', width/2,
+      bannerY + 65);\r
+
+      \  pop();\r
+
+      }\r
+
+      \r
+
+      function drawGrid() {\r
+
+      \  push();\r
+
+      \  stroke(255, 20);\r
+
+      \  strokeWeight(1);\r
+
+      \  for (let x = 1; x < GRID.cols; x++) line(x * GRID.cell, 0, x *
+      GRID.cell, height);\r
+
+      \  for (let y = 1; y < GRID.rows; y++) line(0, y * GRID.cell, width, y *
+      GRID.cell);\r
+
+      \  pop();\r
+
+      }\r
+
+      \r
+
+      function drawGameOver() {\r
+
+      \  const blinkOn = floor(millis() / 400) % 2 === 0;\r
+
+      \r
+
+      \  // Draw the snakes\r
+
+      \  if (!player.alive || winner === player) {\r
+
+      \    if (winner === player) {\r
+
+      \      if (blinkOn) player.draw(this, GRID.cell);\r
+
+      \    } else {\r
+
+      \      player.draw(this, GRID.cell);\r
+
+      \    }\r
+
+      \  }\r
+
+      \  if (enemy && (!enemy.alive || winner === enemy)) {\r
+
+      \    if (winner === enemy) {\r
+
+      \      if (blinkOn) enemy.draw(this, GRID.cell);\r
+
+      \    } else {\r
+
+      \      enemy.draw(this, GRID.cell);\r
+
+      \    }\r
+
+      \  }\r
+
+      \r
+
+      \  push();\r
+
+      \  noStroke();\r
+
+      \  fill(255, 220);\r
+
+      \  \r
+
+      \  // Make the overlay taller for series information\r
+
+      \  const overlayHeight = seriesState.active ? 150 : 120;\r
+
+      \  rect(0, height/2 - overlayHeight/2, width, overlayHeight);\r
+
+      \  \r
+
+      \  fill(0);\r
+
+      \  textAlign(CENTER, CENTER);\r
+
+      \  textSize(22); // Larger text for winner\r
+
+      \r
+
+      \  let line1 = ''; // Winner announcement\r
+
+      \  let line2 = ''; // Series score\r
+
+      \  let line3 = ''; // Death message\r
+
+      \  let line4 = ''; // Series winner (if applicable)\r
+
+      \  let instructionsText = '';\r
+
+      \  \r
+
+      \  // Set game outcome text\r
+
+      \  if (GAME_CONFIG.trainingMode) {\r
+
+      \    line1 = 'TRAINING COMPLETE';\r
+
+      \    line3 = player.alive ? '' : `${PLAYER_CONFIG.id}
+      ${getDeathMessage(player.deathCause)}`;\r
+
+      \  } else if (!player.alive && !enemy.alive) {\r
+
+      \    if (player.deathCause === 'head-to-head' && enemy.deathCause ===
+      'head-to-head') {\r
+
+      \      line1 = 'HEAD-TO-HEAD COLLISION!';\r
+
+      \      line3 = 'Both players crashed!';\r
+
+      \    } else {\r
+
+      \      line1 = 'BOTH PLAYERS CRASHED!';\r
+
+      \    }\r
+
+      \  } else if (winner === player) {\r
+
+      \    line1 = `${PLAYER_CONFIG.id.toUpperCase()} WINS!`;\r
+
+      \    line3 = `${ENEMY_CONFIG.id} ${getDeathMessage(enemy.deathCause)}`;\r
+
+      \  } else if (winner === enemy) {\r
+
+      \    line1 = `${ENEMY_CONFIG.id.toUpperCase()} WINS!`;\r
+
+      \    line3 = `${PLAYER_CONFIG.id}
+      ${getDeathMessage(player.deathCause)}`;\r
+
+      \  }\r
+
+      \  \r
+
+      \  // Set instructions text\r
+
+      \  if (GAME_CONFIG.trainingMode) {\r
+
+      \    instructionsText = 'R: Restart';\r
+
+      \  } else if (seriesState.active) {\r
+
+      \    if (seriesState.seriesOver) {\r
+
+      \      instructionsText = 'R: Start New Series';\r
+
+      \    } else {\r
+
+      \      instructionsText = '\\nENTER: Continue\\nR: Reset';\r
+
+      \    }\r
+
+      \  } else {\r
+
+      \    instructionsText = 'R: Restart';\r
+
+      \  }\r
+
+      \  \r
+
+      \  // Add replay option if available\r
+
+      \  if (frameHistory.length > 0) {\r
+
+      \    instructionsText += '\\nF: Replay Mode';\r
+
+      \  }\r
+
+      \  \r
+
+      \  // Add series information if active\r
+
+      \  if (seriesState.active) {\r
+
+      \    // Series score in new format\r
+
+      \    line2 = `${PLAYER_CONFIG.id}: ${seriesState.playerWins} -
+      ${seriesState.enemyWins} ${ENEMY_CONFIG.id}`;\r
+
+      \    \r
+
+      \    // If series is over, show overall winner\r
+
+      \    if (seriesState.seriesOver) {\r
+
+      \      if (seriesState.seriesWinner === player) {\r
+
+      \        line4 = `${PLAYER_CONFIG.id.toUpperCase()} WINS THE SERIES!`;\r
+
+      \      } else if (seriesState.seriesWinner === enemy) {\r
+
+      \        line4 = `${ENEMY_CONFIG.id.toUpperCase()} WINS THE SERIES!`;\r
+
+      \      } else {\r
+
+      \        line4 = `SERIES ENDS IN A TIE!`;\r
+
+      \      }\r
+
+      \    }\r
+
+      \    \r
+
+      \    // Display all information with updated positioning\r
+
+      \    text(line1, width/2, height/2 - overlayHeight/2 + 35); // Winner
+      announcement at top\r
+
+      \    \r
+
+      \    textSize(18);\r
+
+      \    text(line2, width/2, height/2 - overlayHeight/2 + 65); // Series
+      score\r
+
+      \    \r
+
+      \    textSize(16);\r
+
+      \    text(line3, width/2, height/2 - overlayHeight/2 + 90); // Death
+      message\r
+
+      \    \r
+
+      \    if (line4) {\r
+
+      \      textSize(20);\r
+
+      \      text(line4, width/2, height/2 + 5); // Series winner\r
+
+      \    }\r
+
+      \    \r
+
+      \    // Instructions at bottom in smaller text\r
+
+      \    textSize(12);\r
+
+      \    textAlign(LEFT, CENTER);\r
+
+      \    text(instructionsText, width/2 - 60, height/2 + overlayHeight/2 -
+      30);\r
+
+      \    textAlign(CENTER, CENTER);\r
+
+      \  } else {\r
+
+      \    // Non-series mode positioning\r
+
+      \    text(line1, width/2, height/2 - 40); // Winner announcement\r
+
+      \    \r
+
+      \    textSize(16);\r
+
+      \    text(line3, width/2, height/2 - 10); // Death message\r
+
+      \    \r
+
+      \    // Instructions at bottom in smaller text\r
+
+      \    textSize(12);\r
+
+      \    textAlign(LEFT, CENTER);\r
+
+      \    text(instructionsText, width/2 - 60, height/2 + 30);\r
+
+      \    textAlign(CENTER, CENTER);\r
+
+      \  }\r
+
+      \  pop();\r
+
+      }\r
+
+      \r
+
+      function getDeathMessage(deathCause) {\r
+
+      \  switch (deathCause) {\r
+
+      \    case 'wall':\r
+
+      \      return 'crashed into a wall.';\r
+
+      \    case 'self':\r
+
+      \      return 'crashed into themselves.';\r
+
+      \    case 'opponent':\r
+
+      \      return 'crashed into their opponent.';\r
+
+      \    case 'head-to-head':\r
+
+      \      return 'collided head-to-head.';\r
+
+      \    case 'poison':\r
+
+      \      return 'ate poison.';\r
+
+      \    default:\r
+
+      \      return 'crashed.';\r
+
+      \  }\r
+
+      }\r
+
+      \r
+
+      function bumpScore(n) {\r
+
+      \  const m = scoreEl;\r
+
+      \  if (!m) return;\r
+
+      \  const prev = Number(m.dataset.score || '0');\r
+
+      \  const curr = prev + n;\r
+
+      \  m.dataset.score = String(curr);\r
+
+      \  m.textContent = `${curr}`;\r
+
+      }\r
+
+      \r
+
+      function updateSpeed() {\r
+
+      \  const sliderValue = parseInt(speedSlider.value); // 0-100\r
+
+      \  const scale = calculateSpeedScale(sliderValue);\r
+
+      \  speedValue.textContent = `${scale.toFixed(1)}x`;\r
+
+      \  \r
+
+      \  // Update both snakes' speed using proportional scaling\r
+
+      \  if (player) player.stepMs = scaleSpeed(SPEED_CONFIG.playerBaseMs,
+      scale);\r
+
+      \  if (enemy) enemy.stepMs = scaleSpeed(SPEED_CONFIG.enemyBaseMs,
+      scale);\r
+
+      }\r
+
+      \r
+
+      // Convert slider value (0-100) to speed scale\r
+
+      function calculateSpeedScale(sliderValue) {\r
+
+      \  // Slider: 0 (snail/slow) to 100 (rabbit/fast)\r
+
+      \  // Scale: high multiplier (slow) to low multiplier (fast)\r
+
+      \  \r
+
+      \  // Find the maximum possible scale for the slower snake (enemy)\r
+
+      \  const maxScale = SPEED_CONFIG.maxMs / SPEED_CONFIG.enemyBaseMs;\r
+
+      \  const minScale = SPEED_CONFIG.minMs / SPEED_CONFIG.playerBaseMs;\r
+
+      \  \r
+
+      \  // Invert slider: 0 = fast (min scale), 100 = slow (max scale)\r
+
+      \  const normalizedValue = (100 - sliderValue) / 100; // 0 to 1\r
+
+      \  return minScale + (normalizedValue * (maxScale - minScale));\r
+
+      }\r
+
+      \r
+
+      // Apply scale to a base speed, ensuring it stays within limits\r
+
+      function scaleSpeed(baseMs, scale) {\r
+
+      \  const scaled = Math.round(baseMs * scale);\r
+
+      \  return Math.max(SPEED_CONFIG.minMs, Math.min(SPEED_CONFIG.maxMs,
+      scaled));\r
+
+      }\r
+
+      \r
+
+      // ------ Restart logic ------\r
+
+      // Initialize series state\r
+
+      function resetSeriesState() {\r
+
+      \  // Series is never active in training mode\r
+
+      \  const isSeriesActive = GAME_CONFIG.series.enabled &&
+      !GAME_CONFIG.trainingMode;\r
+
+      \  \r
+
+      \  seriesState = {\r
+
+      \    active: isSeriesActive,\r
+
+      \    playerWins: 0,\r
+
+      \    enemyWins: 0,\r
+
+      \    gamesPlayed: 0,\r
+
+      \    seriesWinner: null,\r
+
+      \    seriesOver: false\r
+
+      \  };\r
+
+      }\r
+
+      \r
+
+      function startNewGame(continueSeriesMode = false) {\r
+
+      \  // Calculate current speed scale from slider\r
+
+      \  const sliderValue = speedSlider ? parseInt(speedSlider.value) : 50; //
+      Default to middle\r
+
+      \  const scale = calculateSpeedScale(sliderValue);\r
+
+      \  \r
+
+      \  player = new Snake({\r
+
+      \    ...PLAYER_CONFIG,\r
+
+      \    stepMs: scaleSpeed(SPEED_CONFIG.playerBaseMs, scale)\r
+
+      \  });\r
+
+      \  \r
+
+      \  // Only create enemy when not in training mode\r
+
+      \  if (!GAME_CONFIG.trainingMode) {\r
+
+      \    enemy = new Snake({\r
+
+      \      ...ENEMY_CONFIG,\r
+
+      \      stepMs: scaleSpeed(SPEED_CONFIG.enemyBaseMs, scale)\r
+
+      \    });\r
+
+      \    \r
+
+      \    // Initialize or continue series when not in training mode\r
+
+      \    if (GAME_CONFIG.series.enabled) {\r
+
+      \      if (!continueSeriesMode) {\r
+
+      \        // Start fresh series\r
+
+      \        resetSeriesState();\r
+
+      \      }\r
+
+      \      seriesState.active = true;\r
+
+      \    }\r
+
+      \  } else {\r
+
+      \    enemy = undefined; // Ensure enemy is undefined in training mode\r
+
+      \    seriesState.active = false;\r
+
+      \  }\r
+
+      \r
+
+      \  winner = null;\r
+
+      \  gameOver = false;\r
+
+      \  gamePaused = false;\r
+
+      \r
+
+      \  frameHistory = [];\r
+
+      \  exitReplayMode();\r
+
+      \r
+
+      \  game.player = player;\r
+
+      \  game.enemy = enemy;\r
+
+      \  game.food = food;\r
+
+      \r
+
+      \  scoreEl.dataset.score = '0';\r
+
+      \  scoreEl.textContent = '0';\r
+
+      \r
+
+      \  initializeFoods();\r
+
+      \  updatePauseButton();\r
+
+      \r
+
+      \  loop();\r
+
+      }\r
+
+      \r
+
+      function resetGame() {\r
+
+      \  startNewGame(false); // false = don't continue series, start fresh\r
+
+      }\r
+
+      \r
+
+      // Continue series (used by Enter key)\r
+
+      function continueGame() {\r
+
+      \  if (gameOver && seriesState.active && !seriesState.seriesOver) {\r
+
+      \    startNewGame(true); // true = continue series\r
+
+      \  }\r
+
+      }\r
+
+      \r
+
+      function togglePause() {\r
+
+      \  if (gameOver || inReplayMode) return; // Can't pause when game is over
+      or in replay mode\r
+
+      \  \r
+
+      \  gamePaused = !gamePaused;\r
+
+      \  updatePauseButton();\r
+
+      \  \r
+
+      \  if (gamePaused) {\r
+
+      \    noLoop();\r
+
+      \  } else {\r
+
+      \    loop();\r
+
+      \  }\r
+
+      }\r
+
+      \r
+
+      function updatePauseButton() {\r
+
+      \  const pauseEmoji = document.getElementById('pause-emoji');\r
+
+      \  const pauseLabel = document.getElementById('pause-label');\r
+
+      \  \r
+
+      \  if (gamePaused) {\r
+
+      \    pauseEmoji.textContent = '▶️';\r
+
+      \    pauseLabel.textContent = 'Resume';\r
+
+      \  } else {\r
+
+      \    pauseEmoji.textContent = '⏸️';\r
+
+      \    pauseLabel.textContent = 'Pause';\r
+
+      \  }\r
+
+      }\r
+
+      \r
+
+      function drawPauseOverlay() {\r
+
+      \  push();\r
+
+      \  noStroke();\r
+
+      \  fill(0, 150); // Semi-transparent overlay\r
+
+      \  rect(0, 0, width, height);\r
+
+      \  \r
+
+      \  fill(255, 220);\r
+
+      \  rect(0, height/2 - 30, width, 60);\r
+
+      \  \r
+
+      \  fill(0);\r
+
+      \  textAlign(CENTER, CENTER);\r
+
+      \  textSize(18);\r
+
+      \  text('Game Paused', width/2, height/2 - 10);\r
+
+      \  textSize(14);\r
+
+      \  text('Press SPACE or click Resume to continue', width/2, height/2 +
+      10);\r
+
+      \  pop();\r
+
+      }\r
+
+      \r
+
+      function keyPressed() {\r
+
+      \  if (key.toLowerCase() === 'r') {\r
+
+      \    resetGame();\r
+
+      \  } else if (keyCode === ENTER || keyCode === RETURN) {\r
+
+      \    continueGame();\r
 
       \  } else if (key === ' ') {\r
 
@@ -4797,6 +5474,53 @@ files:
 
       \r
 
+      // ------ Game Configuration ------\r
+
+      const GAME_CONFIG = {\r
+
+      \  // Series settings\r
+
+      \  series: {\r
+
+      \    enabled: true,              // Enable/disable series mode (ignored in
+      training mode)\r
+
+      \    winsToWin: 3,               // First to X wins\r
+
+      \    resetBetweenGames: true     // Whether to reset the canvas between
+      games\r
+
+      \  },\r
+
+      \  // Training mode setting\r
+
+      \  trainingMode: false,          // Whether we're in training mode (no
+      enemy, series disabled)\r
+
+      };\r
+
+      \r
+
+      // ------ Series State ------\r
+
+      let seriesState = {\r
+
+      \  active: false,                // Whether a series is active\r
+
+      \  playerWins: 0,                // Number of wins for player\r
+
+      \  enemyWins: 0,                 // Number of wins for enemy\r
+
+      \  gamesPlayed: 0,               // Number of games played in series\r
+
+      \  seriesWinner: null,           // Overall series winner\r
+
+      \  seriesOver: false             // Whether the series is complete\r
+
+      };\r
+
+      \r
+
       // ------ Game State ------\r
 
       let player, enemy;\r
@@ -4814,8 +5538,6 @@ files:
       let gameOver = false;\r
 
       let gamePaused = false;\r
-
-      let trainingMode = false; // Boolean flag to control training mode\r
 
       \r
 
@@ -4915,9 +5637,9 @@ files:
 
       \  start: { x: 16, y: 10 },\r
 
-      \  color: '#ef4444',\r
+      \  color: '#ec7621ff',\r
 
-      \  size: 8,\r
+      \  size: 3,\r
 
       \  direction: { x: -1, y: 0 },\r
 
@@ -4934,6 +5656,8 @@ files:
       window.ENEMY_CONFIG = ENEMY_CONFIG;\r
 
       window.FOOD_CONFIG = FOOD_CONFIG;\r
+
+      window.GAME_CONFIG = GAME_CONFIG;\r
 
       \r
 
@@ -4996,6 +5720,8 @@ files:
       \  });\r
 
       \  \r
+
+      \  // Start the game (which will initialize series state if needed)\r
 
       \  startNewGame();\r
 
@@ -5184,6 +5910,54 @@ files:
       \      else if (enemy.alive && !player.alive) winner = enemy;\r
 
       \      else winner = null;\r
+
+      \      \r
+
+      \      // Update series state if series is active\r
+
+      \      if (seriesState.active) {\r
+
+      \        seriesState.gamesPlayed++;\r
+
+      \        \r
+
+      \        if (winner === player) {\r
+
+      \          seriesState.playerWins++;\r
+
+      \        } else if (winner === enemy) {\r
+
+      \          seriesState.enemyWins++;\r
+
+      \        }\r
+
+      \        \r
+
+      \        // Check if series is complete\r
+
+      \        if (seriesState.playerWins >= GAME_CONFIG.series.winsToWin || \r
+
+      \            seriesState.enemyWins >= GAME_CONFIG.series.winsToWin) {\r
+
+      \          seriesState.seriesOver = true;\r
+
+      \          if (seriesState.playerWins > seriesState.enemyWins) {\r
+
+      \            seriesState.seriesWinner = player;\r
+
+      \          } else if (seriesState.enemyWins > seriesState.playerWins) {\r
+
+      \            seriesState.seriesWinner = enemy;\r
+
+      \          } else {\r
+
+      \            seriesState.seriesWinner = null; // Tie\r
+
+      \          }\r
+
+      \        }\r
+
+      \      }\r
 
       \    } else {\r
 
@@ -5773,6 +6547,8 @@ files:
 
       \r
 
+      \  // Draw the snakes\r
+
       \  if (!player.alive || winner === player) {\r
 
       \    if (winner === player) {\r
@@ -5809,32 +6585,43 @@ files:
 
       \  fill(255, 220);\r
 
-      \  rect(0, height/2 - 60, width, 120);\r
+      \  \r
+
+      \  // Make the overlay taller for series information\r
+
+      \  const overlayHeight = seriesState.active ? 150 : 120;\r
+
+      \  rect(0, height/2 - overlayHeight/2, width, overlayHeight);\r
+
+      \  \r
 
       \  fill(0);\r
 
       \  textAlign(CENTER, CENTER);\r
 
-      \  textSize(18);\r
+      \  textSize(22); // Larger text for winner\r
 
       \r
 
-      \  let line1 = '';\r
+      \  let line1 = ''; // Winner announcement\r
 
-      \  let line2 = '';\r
+      \  let line2 = ''; // Series score\r
 
-      \  let line3 = 'Press R to restart.';\r
+      \  let line3 = ''; // Death message\r
 
-      \  let line4 = frameHistory.length > 0 ? 'Press F to view replay frames.'
-      : '';\r
+      \  let line4 = ''; // Series winner (if applicable)\r
+
+      \  let instructionsText = '';\r
 
       \  \r
 
-      \  if (trainingMode) {\r
+      \  // Set game outcome text\r
 
-      \    line1 = 'Training Complete';\r
+      \  if (GAME_CONFIG.trainingMode) {\r
 
-      \    line2 = player.alive ? '' : `${PLAYER_CONFIG.id}
+      \    line1 = 'TRAINING COMPLETE';\r
+
+      \    line3 = player.alive ? '' : `${PLAYER_CONFIG.id}
       ${getDeathMessage(player.deathCause)}`;\r
 
       \  } else if (!player.alive && !enemy.alive) {\r
@@ -5842,46 +6629,167 @@ files:
       \    if (player.deathCause === 'head-to-head' && enemy.deathCause ===
       'head-to-head') {\r
 
-      \      line1 = 'Head-to-head collision!';\r
+      \      line1 = 'HEAD-TO-HEAD COLLISION!';\r
 
-      \      line2 = 'Both players crashed!';\r
+      \      line3 = 'Both players crashed!';\r
 
       \    } else {\r
 
-      \      line1 = 'Both players crashed!';\r
-
-      \      line2 = '';\r
+      \      line1 = 'BOTH PLAYERS CRASHED!';\r
 
       \    }\r
 
       \  } else if (winner === player) {\r
 
-      \    line1 = `${PLAYER_CONFIG.id} Wins!`;\r
+      \    line1 = `${PLAYER_CONFIG.id.toUpperCase()} WINS!`;\r
 
-      \    line2 = `${ENEMY_CONFIG.id} ${getDeathMessage(enemy.deathCause)}`;\r
+      \    line3 = `${ENEMY_CONFIG.id} ${getDeathMessage(enemy.deathCause)}`;\r
 
       \  } else if (winner === enemy) {\r
 
-      \    line1 = `${ENEMY_CONFIG.id} Wins!`;\r
+      \    line1 = `${ENEMY_CONFIG.id.toUpperCase()} WINS!`;\r
 
-      \    line2 = `${PLAYER_CONFIG.id}
+      \    line3 = `${PLAYER_CONFIG.id}
       ${getDeathMessage(player.deathCause)}`;\r
 
       \  }\r
 
-      \r
+      \  \r
 
-      \  text(line1, width/2, height/2 - 30);\r
+      \  // Set instructions text\r
 
-      \  if (line2) text(line2, width/2, height/2 - 10);\r
+      \  if (GAME_CONFIG.trainingMode) {\r
 
-      \  text(line3, width/2, height/2 + 10);\r
+      \    instructionsText = 'R: Restart';\r
 
-      \  if (line4) {\r
+      \  } else if (seriesState.active) {\r
 
-      \    textSize(14);\r
+      \    if (seriesState.seriesOver) {\r
 
-      \    text(line4, width/2, height/2 + 30);\r
+      \      instructionsText = 'R: Start New Series';\r
+
+      \    } else {\r
+
+      \      instructionsText = '\\nENTER: Continue\\nR: Reset';\r
+
+      \    }\r
+
+      \  } else {\r
+
+      \    instructionsText = 'R: Restart';\r
+
+      \  }\r
+
+      \  \r
+
+      \  // Add replay option if available\r
+
+      \  if (frameHistory.length > 0) {\r
+
+      \    instructionsText += '\\nF: Replay Mode';\r
+
+      \  }\r
+
+      \  \r
+
+      \  // Add series information if active\r
+
+      \  if (seriesState.active) {\r
+
+      \    // Series score in new format\r
+
+      \    line2 = `${PLAYER_CONFIG.id}: ${seriesState.playerWins} -
+      ${seriesState.enemyWins} ${ENEMY_CONFIG.id}`;\r
+
+      \    \r
+
+      \    // If series is over, show overall winner\r
+
+      \    if (seriesState.seriesOver) {\r
+
+      \      if (seriesState.seriesWinner === player) {\r
+
+      \        line4 = `${PLAYER_CONFIG.id.toUpperCase()} WINS THE SERIES!`;\r
+
+      \      } else if (seriesState.seriesWinner === enemy) {\r
+
+      \        line4 = `${ENEMY_CONFIG.id.toUpperCase()} WINS THE SERIES!`;\r
+
+      \      } else {\r
+
+      \        line4 = `SERIES ENDS IN A TIE!`;\r
+
+      \      }\r
+
+      \    }\r
+
+      \    \r
+
+      \    // Display all information with updated positioning\r
+
+      \    text(line1, width/2, height/2 - overlayHeight/2 + 35); // Winner
+      announcement at top\r
+
+      \    \r
+
+      \    textSize(18);\r
+
+      \    text(line2, width/2, height/2 - overlayHeight/2 + 65); // Series
+      score\r
+
+      \    \r
+
+      \    textSize(16);\r
+
+      \    text(line3, width/2, height/2 - overlayHeight/2 + 90); // Death
+      message\r
+
+      \    \r
+
+      \    if (line4) {\r
+
+      \      textSize(20);\r
+
+      \      text(line4, width/2, height/2 + 5); // Series winner\r
+
+      \    }\r
+
+      \    \r
+
+      \    // Instructions at bottom in smaller text\r
+
+      \    textSize(12);\r
+
+      \    textAlign(LEFT, CENTER);\r
+
+      \    text(instructionsText, width/2 - 60, height/2 + overlayHeight/2 -
+      30);\r
+
+      \    textAlign(CENTER, CENTER);\r
+
+      \  } else {\r
+
+      \    // Non-series mode positioning\r
+
+      \    text(line1, width/2, height/2 - 40); // Winner announcement\r
+
+      \    \r
+
+      \    textSize(16);\r
+
+      \    text(line3, width/2, height/2 - 10); // Death message\r
+
+      \    \r
+
+      \    // Instructions at bottom in smaller text\r
+
+      \    textSize(12);\r
+
+      \    textAlign(LEFT, CENTER);\r
+
+      \    text(instructionsText, width/2 - 60, height/2 + 30);\r
+
+      \    textAlign(CENTER, CENTER);\r
 
       \  }\r
 
@@ -6008,7 +6916,38 @@ files:
 
       // ------ Restart logic ------\r
 
-      function startNewGame() {\r
+      // Initialize series state\r
+
+      function resetSeriesState() {\r
+
+      \  // Series is never active in training mode\r
+
+      \  const isSeriesActive = GAME_CONFIG.series.enabled &&
+      !GAME_CONFIG.trainingMode;\r
+
+      \  \r
+
+      \  seriesState = {\r
+
+      \    active: isSeriesActive,\r
+
+      \    playerWins: 0,\r
+
+      \    enemyWins: 0,\r
+
+      \    gamesPlayed: 0,\r
+
+      \    seriesWinner: null,\r
+
+      \    seriesOver: false\r
+
+      \  };\r
+
+      }\r
+
+      \r
+
+      function startNewGame(continueSeriesMode = false) {\r
 
       \  // Calculate current speed scale from slider\r
 
@@ -6031,7 +6970,7 @@ files:
 
       \  // Only create enemy when not in training mode\r
 
-      \  if (!trainingMode) {\r
+      \  if (!GAME_CONFIG.trainingMode) {\r
 
       \    enemy = new Snake({\r
 
@@ -6041,9 +6980,29 @@ files:
 
       \    });\r
 
+      \    \r
+
+      \    // Initialize or continue series when not in training mode\r
+
+      \    if (GAME_CONFIG.series.enabled) {\r
+
+      \      if (!continueSeriesMode) {\r
+
+      \        // Start fresh series\r
+
+      \        resetSeriesState();\r
+
+      \      }\r
+
+      \      seriesState.active = true;\r
+
+      \    }\r
+
       \  } else {\r
 
       \    enemy = undefined; // Ensure enemy is undefined in training mode\r
+
+      \    seriesState.active = false;\r
 
       \  }\r
 
@@ -6091,7 +7050,21 @@ files:
 
       function resetGame() {\r
 
-      \  startNewGame();\r
+      \  startNewGame(false); // false = don't continue series, start fresh\r
+
+      }\r
+
+      \r
+
+      // Continue series (used by Enter key)\r
+
+      function continueGame() {\r
+
+      \  if (gameOver && seriesState.active && !seriesState.seriesOver) {\r
+
+      \    startNewGame(true); // true = continue series\r
+
+      \  }\r
 
       }\r
 
@@ -6192,6 +7165,10 @@ files:
       \  if (key.toLowerCase() === 'r') {\r
 
       \    resetGame();\r
+
+      \  } else if (keyCode === ENTER || keyCode === RETURN) {\r
+
+      \    continueGame();\r
 
       \  } else if (key === ' ') {\r
 
@@ -7347,6 +8324,53 @@ files:
 
       \r
 
+      // ------ Game Configuration ------\r
+
+      const GAME_CONFIG = {\r
+
+      \  // Series settings\r
+
+      \  series: {\r
+
+      \    enabled: true,              // Enable/disable series mode (ignored in
+      training mode)\r
+
+      \    winsToWin: 3,               // First to X wins\r
+
+      \    resetBetweenGames: true     // Whether to reset the canvas between
+      games\r
+
+      \  },\r
+
+      \  // Training mode setting\r
+
+      \  trainingMode: false,          // Whether we're in training mode (no
+      enemy, series disabled)\r
+
+      };\r
+
+      \r
+
+      // ------ Series State ------\r
+
+      let seriesState = {\r
+
+      \  active: false,                // Whether a series is active\r
+
+      \  playerWins: 0,                // Number of wins for player\r
+
+      \  enemyWins: 0,                 // Number of wins for enemy\r
+
+      \  gamesPlayed: 0,               // Number of games played in series\r
+
+      \  seriesWinner: null,           // Overall series winner\r
+
+      \  seriesOver: false             // Whether the series is complete\r
+
+      };\r
+
+      \r
+
       // ------ Game State ------\r
 
       let player, enemy;\r
@@ -7364,8 +8388,6 @@ files:
       let gameOver = false;\r
 
       let gamePaused = false;\r
-
-      let trainingMode = false; // Boolean flag to control training mode\r
 
       \r
 
@@ -7447,7 +8469,7 @@ files:
 
       \  foodCount: 1,\r
 
-      \  poisonCount: 0,\r
+      \  poisonCount: 3,\r
 
       \  foodColor: '#22c55e',\r
 
@@ -7465,9 +8487,9 @@ files:
 
       \  start: { x: 16, y: 10 },\r
 
-      \  color: '#ef4444',\r
+      \  color: '#840decff',\r
 
-      \  size: 8,\r
+      \  size: 3,\r
 
       \  direction: { x: -1, y: 0 },\r
 
@@ -7484,6 +8506,8 @@ files:
       window.ENEMY_CONFIG = ENEMY_CONFIG;\r
 
       window.FOOD_CONFIG = FOOD_CONFIG;\r
+
+      window.GAME_CONFIG = GAME_CONFIG;\r
 
       \r
 
@@ -7546,6 +8570,8 @@ files:
       \  });\r
 
       \  \r
+
+      \  // Start the game (which will initialize series state if needed)\r
 
       \  startNewGame();\r
 
@@ -7734,6 +8760,54 @@ files:
       \      else if (enemy.alive && !player.alive) winner = enemy;\r
 
       \      else winner = null;\r
+
+      \      \r
+
+      \      // Update series state if series is active\r
+
+      \      if (seriesState.active) {\r
+
+      \        seriesState.gamesPlayed++;\r
+
+      \        \r
+
+      \        if (winner === player) {\r
+
+      \          seriesState.playerWins++;\r
+
+      \        } else if (winner === enemy) {\r
+
+      \          seriesState.enemyWins++;\r
+
+      \        }\r
+
+      \        \r
+
+      \        // Check if series is complete\r
+
+      \        if (seriesState.playerWins >= GAME_CONFIG.series.winsToWin || \r
+
+      \            seriesState.enemyWins >= GAME_CONFIG.series.winsToWin) {\r
+
+      \          seriesState.seriesOver = true;\r
+
+      \          if (seriesState.playerWins > seriesState.enemyWins) {\r
+
+      \            seriesState.seriesWinner = player;\r
+
+      \          } else if (seriesState.enemyWins > seriesState.playerWins) {\r
+
+      \            seriesState.seriesWinner = enemy;\r
+
+      \          } else {\r
+
+      \            seriesState.seriesWinner = null; // Tie\r
+
+      \          }\r
+
+      \        }\r
+
+      \      }\r
 
       \    } else {\r
 
@@ -8323,6 +9397,8 @@ files:
 
       \r
 
+      \  // Draw the snakes\r
+
       \  if (!player.alive || winner === player) {\r
 
       \    if (winner === player) {\r
@@ -8359,32 +9435,43 @@ files:
 
       \  fill(255, 220);\r
 
-      \  rect(0, height/2 - 60, width, 120);\r
+      \  \r
+
+      \  // Make the overlay taller for series information\r
+
+      \  const overlayHeight = seriesState.active ? 150 : 120;\r
+
+      \  rect(0, height/2 - overlayHeight/2, width, overlayHeight);\r
+
+      \  \r
 
       \  fill(0);\r
 
       \  textAlign(CENTER, CENTER);\r
 
-      \  textSize(18);\r
+      \  textSize(22); // Larger text for winner\r
 
       \r
 
-      \  let line1 = '';\r
+      \  let line1 = ''; // Winner announcement\r
 
-      \  let line2 = '';\r
+      \  let line2 = ''; // Series score\r
 
-      \  let line3 = 'Press R to restart.';\r
+      \  let line3 = ''; // Death message\r
 
-      \  let line4 = frameHistory.length > 0 ? 'Press F to view replay frames.'
-      : '';\r
+      \  let line4 = ''; // Series winner (if applicable)\r
+
+      \  let instructionsText = '';\r
 
       \  \r
 
-      \  if (trainingMode) {\r
+      \  // Set game outcome text\r
 
-      \    line1 = 'Training Complete';\r
+      \  if (GAME_CONFIG.trainingMode) {\r
 
-      \    line2 = player.alive ? '' : `${PLAYER_CONFIG.id}
+      \    line1 = 'TRAINING COMPLETE';\r
+
+      \    line3 = player.alive ? '' : `${PLAYER_CONFIG.id}
       ${getDeathMessage(player.deathCause)}`;\r
 
       \  } else if (!player.alive && !enemy.alive) {\r
@@ -8392,46 +9479,167 @@ files:
       \    if (player.deathCause === 'head-to-head' && enemy.deathCause ===
       'head-to-head') {\r
 
-      \      line1 = 'Head-to-head collision!';\r
+      \      line1 = 'HEAD-TO-HEAD COLLISION!';\r
 
-      \      line2 = 'Both players crashed!';\r
+      \      line3 = 'Both players crashed!';\r
 
       \    } else {\r
 
-      \      line1 = 'Both players crashed!';\r
-
-      \      line2 = '';\r
+      \      line1 = 'BOTH PLAYERS CRASHED!';\r
 
       \    }\r
 
       \  } else if (winner === player) {\r
 
-      \    line1 = `${PLAYER_CONFIG.id} Wins!`;\r
+      \    line1 = `${PLAYER_CONFIG.id.toUpperCase()} WINS!`;\r
 
-      \    line2 = `${ENEMY_CONFIG.id} ${getDeathMessage(enemy.deathCause)}`;\r
+      \    line3 = `${ENEMY_CONFIG.id} ${getDeathMessage(enemy.deathCause)}`;\r
 
       \  } else if (winner === enemy) {\r
 
-      \    line1 = `${ENEMY_CONFIG.id} Wins!`;\r
+      \    line1 = `${ENEMY_CONFIG.id.toUpperCase()} WINS!`;\r
 
-      \    line2 = `${PLAYER_CONFIG.id}
+      \    line3 = `${PLAYER_CONFIG.id}
       ${getDeathMessage(player.deathCause)}`;\r
 
       \  }\r
 
-      \r
+      \  \r
 
-      \  text(line1, width/2, height/2 - 30);\r
+      \  // Set instructions text\r
 
-      \  if (line2) text(line2, width/2, height/2 - 10);\r
+      \  if (GAME_CONFIG.trainingMode) {\r
 
-      \  text(line3, width/2, height/2 + 10);\r
+      \    instructionsText = 'R: Restart';\r
 
-      \  if (line4) {\r
+      \  } else if (seriesState.active) {\r
 
-      \    textSize(14);\r
+      \    if (seriesState.seriesOver) {\r
 
-      \    text(line4, width/2, height/2 + 30);\r
+      \      instructionsText = 'R: Start New Series';\r
+
+      \    } else {\r
+
+      \      instructionsText = '\\nENTER: Continue\\nR: Reset';\r
+
+      \    }\r
+
+      \  } else {\r
+
+      \    instructionsText = 'R: Restart';\r
+
+      \  }\r
+
+      \  \r
+
+      \  // Add replay option if available\r
+
+      \  if (frameHistory.length > 0) {\r
+
+      \    instructionsText += '\\nF: Replay Mode';\r
+
+      \  }\r
+
+      \  \r
+
+      \  // Add series information if active\r
+
+      \  if (seriesState.active) {\r
+
+      \    // Series score in new format\r
+
+      \    line2 = `${PLAYER_CONFIG.id}: ${seriesState.playerWins} -
+      ${seriesState.enemyWins} ${ENEMY_CONFIG.id}`;\r
+
+      \    \r
+
+      \    // If series is over, show overall winner\r
+
+      \    if (seriesState.seriesOver) {\r
+
+      \      if (seriesState.seriesWinner === player) {\r
+
+      \        line4 = `${PLAYER_CONFIG.id.toUpperCase()} WINS THE SERIES!`;\r
+
+      \      } else if (seriesState.seriesWinner === enemy) {\r
+
+      \        line4 = `${ENEMY_CONFIG.id.toUpperCase()} WINS THE SERIES!`;\r
+
+      \      } else {\r
+
+      \        line4 = `SERIES ENDS IN A TIE!`;\r
+
+      \      }\r
+
+      \    }\r
+
+      \    \r
+
+      \    // Display all information with updated positioning\r
+
+      \    text(line1, width/2, height/2 - overlayHeight/2 + 35); // Winner
+      announcement at top\r
+
+      \    \r
+
+      \    textSize(18);\r
+
+      \    text(line2, width/2, height/2 - overlayHeight/2 + 65); // Series
+      score\r
+
+      \    \r
+
+      \    textSize(16);\r
+
+      \    text(line3, width/2, height/2 - overlayHeight/2 + 90); // Death
+      message\r
+
+      \    \r
+
+      \    if (line4) {\r
+
+      \      textSize(20);\r
+
+      \      text(line4, width/2, height/2 + 5); // Series winner\r
+
+      \    }\r
+
+      \    \r
+
+      \    // Instructions at bottom in smaller text\r
+
+      \    textSize(12);\r
+
+      \    textAlign(LEFT, CENTER);\r
+
+      \    text(instructionsText, width/2 - 60, height/2 + overlayHeight/2 -
+      30);\r
+
+      \    textAlign(CENTER, CENTER);\r
+
+      \  } else {\r
+
+      \    // Non-series mode positioning\r
+
+      \    text(line1, width/2, height/2 - 40); // Winner announcement\r
+
+      \    \r
+
+      \    textSize(16);\r
+
+      \    text(line3, width/2, height/2 - 10); // Death message\r
+
+      \    \r
+
+      \    // Instructions at bottom in smaller text\r
+
+      \    textSize(12);\r
+
+      \    textAlign(LEFT, CENTER);\r
+
+      \    text(instructionsText, width/2 - 60, height/2 + 30);\r
+
+      \    textAlign(CENTER, CENTER);\r
 
       \  }\r
 
@@ -8558,7 +9766,38 @@ files:
 
       // ------ Restart logic ------\r
 
-      function startNewGame() {\r
+      // Initialize series state\r
+
+      function resetSeriesState() {\r
+
+      \  // Series is never active in training mode\r
+
+      \  const isSeriesActive = GAME_CONFIG.series.enabled &&
+      !GAME_CONFIG.trainingMode;\r
+
+      \  \r
+
+      \  seriesState = {\r
+
+      \    active: isSeriesActive,\r
+
+      \    playerWins: 0,\r
+
+      \    enemyWins: 0,\r
+
+      \    gamesPlayed: 0,\r
+
+      \    seriesWinner: null,\r
+
+      \    seriesOver: false\r
+
+      \  };\r
+
+      }\r
+
+      \r
+
+      function startNewGame(continueSeriesMode = false) {\r
 
       \  // Calculate current speed scale from slider\r
 
@@ -8581,7 +9820,7 @@ files:
 
       \  // Only create enemy when not in training mode\r
 
-      \  if (!trainingMode) {\r
+      \  if (!GAME_CONFIG.trainingMode) {\r
 
       \    enemy = new Snake({\r
 
@@ -8591,9 +9830,29 @@ files:
 
       \    });\r
 
+      \    \r
+
+      \    // Initialize or continue series when not in training mode\r
+
+      \    if (GAME_CONFIG.series.enabled) {\r
+
+      \      if (!continueSeriesMode) {\r
+
+      \        // Start fresh series\r
+
+      \        resetSeriesState();\r
+
+      \      }\r
+
+      \      seriesState.active = true;\r
+
+      \    }\r
+
       \  } else {\r
 
       \    enemy = undefined; // Ensure enemy is undefined in training mode\r
+
+      \    seriesState.active = false;\r
 
       \  }\r
 
@@ -8641,7 +9900,21 @@ files:
 
       function resetGame() {\r
 
-      \  startNewGame();\r
+      \  startNewGame(false); // false = don't continue series, start fresh\r
+
+      }\r
+
+      \r
+
+      // Continue series (used by Enter key)\r
+
+      function continueGame() {\r
+
+      \  if (gameOver && seriesState.active && !seriesState.seriesOver) {\r
+
+      \    startNewGame(true); // true = continue series\r
+
+      \  }\r
 
       }\r
 
@@ -8742,6 +10015,10 @@ files:
       \  if (key.toLowerCase() === 'r') {\r
 
       \    resetGame();\r
+
+      \  } else if (keyCode === ENTER || keyCode === RETURN) {\r
+
+      \    continueGame();\r
 
       \  } else if (key === ' ') {\r
 
