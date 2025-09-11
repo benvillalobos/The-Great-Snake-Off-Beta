@@ -3107,6 +3107,75 @@ files:
 
       \r
 
+      ```\r
+
+      \r
+
+      \r
+
+      ```prompt\r
+
+      cut off bulldozer. avoid coiling into yourself.Do not go for food if it's
+      too close to an edge or corner\r
+
+      ```\r
+
+      \r
+
+      Problem: Distance to wall + does not change direction\r
+
+      \r
+
+      ```typescript\r
+
+      function playerAI(player) { \r
+
+      \  let direction = player.towardsEnemy();\r
+
+      \  console.log(\"SnakeBot: I'm cutting off the Bulldozer, watch
+      this!\");\r
+
+      \r
+
+      \  if (player.willHitSelf(direction)) {\r
+
+      \    console.log(\"SnakeBot: Yikes, I almost coiled into myself!\");\r
+
+      \    direction = player.randomSafeDirection();\r
+
+      \  }\r
+
+      \r
+
+      \  const closestFood = player.getClosestFood();\r
+
+      \  if (closestFood) {\r
+
+      \    const distanceToWall =
+      player.distanceToWall(player.towards(closestFood));\r
+
+      \    if (distanceToWall <= 2) {\r
+
+      \      console.log(\"SnakeBot: That food is too close to the edge, not
+      worth it!\");\r
+
+      \    } else {\r
+
+      \      console.log(\"SnakeBot: Food looks fine, but Bulldozer is my main
+      target!\");\r
+
+      \    }\r
+
+      \  }\r
+
+      \r
+
+      \  return direction;\r
+
+      }\r
+
+      \r
+
       ```"
   - path: course1/unit1/lesson1/lessonpart4/game.js
     content: "// ------ Grid & Canvas ------\r
