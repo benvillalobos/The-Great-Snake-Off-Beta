@@ -152,9 +152,7 @@ files:
 
       \    return Direction.UP;\r
 
-      }\r
-
-      \r\n"
+      }\r\n"
   - path: course1/unit1/lesson1/lessonpart3/index.html
     content: "<!DOCTYPE html>\r
 
