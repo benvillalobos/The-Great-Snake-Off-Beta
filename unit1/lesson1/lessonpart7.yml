@@ -45,4 +45,12 @@ content: >+
   appear in the top right code pane. Click the green Play button in the top
   right corner of that pane to see your strategy in action!
 
+showEditor: true
 showExplorer: true
+editors:
+  - course1/systemPrompt.md
+  - course1/player-ai.js
+  - course1/snake.js
+  - course1/unit1/lesson1/lessonpart7/index.html
+  - course1/unit1/lesson1/lessonpart7/enemy-ai.js
+  - course1/unit1/lesson1/lessonpart7/game.js
