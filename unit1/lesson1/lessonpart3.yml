@@ -6,6 +6,10 @@ content: |
 
   *SnakeBot cruises around the training arena, practicing.*
 
+  > \[!TIP]
+  > Woah! What just happened?
+  > Welcome to your first _Prompt Challenge_! After reading through the content in this page, start by writing your prompt in the bottom left pane. When you're ready, click the sparkle button to generate code. You’ll see the generated code appear in the top right code pane. Click the green Play button in the top right corner of that pane to see your strategy in action!
+
   **SnakeBot**\
   Alright, coach, since I’m an LLM, I can’t just make moves on my own. I need your strategies, your prompts, so I can spin them into code. You give the plan, I give the code.
 
