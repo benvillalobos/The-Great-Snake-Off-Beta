@@ -28,9 +28,9 @@ editors:
   - course1/unit1/lesson1/lessonpart3/enemy-ai.js
   - course1/unit1/lesson1/lessonpart3/index.html
   - course1/unit1/lesson1/lessonpart3/game.js
-  - course1/unit1/lesson1/lessonpart3/snake.js
   - course1/unit1/lesson1/lessonpart3/prompt.md
-  - course1/unit1/lesson1/lessonpart3/player-ai.js
+  - course1/player-ai.js
+  - course1/snake.js
 questionGroups:
   - id: "1"
     questions:
