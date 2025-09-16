@@ -37,10 +37,9 @@ content: |+
 showEditor: true
 showExplorer: true
 editors:
-  - course1/systemPrompt.md
   - course1/unit1/lesson1/lessonpart6/index.html
   - course1/unit1/lesson1/lessonpart6/enemy-ai.js
-  - course1/unit1/lesson1/lessonpart6/prompts.md
   - course1/player-ai.js
   - course1/snake.js
-  - course1/unit1/lesson1/lessonpart6/game.js
+  - course1/game.js
+  - course1/unit1/lesson1/lessonpart6/settings.js
