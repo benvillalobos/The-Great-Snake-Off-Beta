@@ -34,7 +34,7 @@ content: |+
 
   > \[!TIP]
   > Prompt Challenge Instructions
-  > Start by writing your prompt in the bottom left pane. When you're ready, click the sparkle button to generate code. You’ll see the generated code appear in the top right code pane. Click the green Play button in the top right corner of that pane to see your strategy in action!
+  > After reading through the content in this page, start by writing your prompt in `prompt.md` file on the right. When you're ready, click the ✨ button to generate code. You’ll see the generated code appear in the `player-ai.js` file. With that file open, click the green Play button in the top right corner of that window to see your strategy in action!
 
 showEditor: true
 showExplorer: true
@@ -46,6 +46,12 @@ editors:
   - course1/unit1/lesson1/lessonpart4/settings.js
   - course1/unit1/lesson1/lessonpart4/prompt.md
   - course1/player-ai.js
+hiddenEditors:
+  - course1/unit1/lesson1/lessonpart4/settings.js
+  - course1/game.js
+  - course1/snake.js
+  - course1/unit1/lesson1/lessonpart4/enemy-ai.js
+  - course1/unit1/lesson1/lessonpart4/index.html
 codePrompts:
   - systemPrompt: "1"
     promptFile: course1/unit1/lesson1/lessonpart4/prompt.md
