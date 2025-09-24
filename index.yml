@@ -6214,41 +6214,5 @@ files:
       window.ENEMY_CONFIG = ENEMY_CONFIG;\r
 
       window.SPEED_CONFIG = SPEED_CONFIG;"
-  - path: course1/unit1/lesson1/lessonpart3/prompt.md
-    content: "<!-- 🐍 COACH'S CORNER 🐍\r
-
-      Write clear, simple instructions for SnakeBot below.\r
-
-      Then press the ✨ Run Prompt button in the top right of this window to turn
-      your strategy into code!\r
-
-      -->"
-  - path: course1/unit1/lesson1/lessonpart4/prompt.md
-    content: "<!-- 🐍 COACH'S CORNER 🐍\r
-
-      Write clear, simple instructions for SnakeBot below.\r
-
-      Then press the ✨ Run Prompt button in the top right of this window to turn
-      your strategy into code!\r
-
-      -->"
-  - path: course1/unit1/lesson1/lessonpart5/prompt.md
-    content: "<!-- 🐍 COACH'S CORNER 🐍\r
-
-      Write clear, simple instructions for SnakeBot below.\r
-
-      Then press the ✨ Run Prompt button in the top right of this window to turn
-      your strategy into code!\r
-
-      -->"
-  - path: course1/unit1/lesson1/lessonpart6/prompt.md
-    content: "<!-- 🐍 COACH'S CORNER 🐍\r
-
-      Write clear, simple instructions for SnakeBot below.\r
-
-      Then press the ✨ Run Prompt button in the top right of this window to turn
-      your strategy into code!\r
-
-      -->"
 units:
   - unit1/index.yml
