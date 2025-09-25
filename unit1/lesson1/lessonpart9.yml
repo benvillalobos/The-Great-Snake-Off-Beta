@@ -10,7 +10,14 @@ content: |+
 
   > \[!TIP]
   > Slither Slam Tournament Rules
-
+  > Slither Slam rounds are decided in a "first to 3 wins" format.
+  >
+  > * Eat food to grow
+  > * Avoid running into walls
+  > * Avoid running into yourself
+  > * Avoid running into enemy snakes
+  > * Victory goes to the last snake standing!
+  > * The first snake to achieve 3 wins is declared the winner.
 
 showEditor: true
 editors:
