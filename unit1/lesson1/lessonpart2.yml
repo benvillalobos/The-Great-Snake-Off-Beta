@@ -6,18 +6,23 @@ content: |
 
   *The training grounds are quieter than the roaring arena.*
 
-  **SnakeBot**\
-  “Alright, partner, before we dive into the strategy, let’s get one thing straight. What am I, really? I’m not just a regular snake. I’m an AI, an Artificial Intelligence! But not just any AI… I’m what’s called an LLM. That stands for ‘Large Language Model.’ Sounds impressive, right?”
+  **SnakeBot:** “Alright, partner, before we dive into the strategy, it's time for our first lesson: What is AI? And what’s this LLM thing everyone keeps talking about?”
 
-  *Snakebot nods and winks multiple times.*
+  *SnakeBot puts on oversized glasses.*
 
-  **SnakeBot**\
-  Here’s the simple version: imagine I’m a super-powered robot that’s read ***millions*** of lines of code. But here’s the catch, I don’t actually know *what to do* with all that knowledge. I’ve got a head full of strategies, but without coaching, I'm coiled up doing nothing. That’s where you come in. When you talk to me, you’re giving me a *prompt.* A *prompt* is just a fancy word for instructions. Using your prompt, I do my best to write code that fits what you asked for.
+  **SnakeBot:** "AI, or Artificial Intelligence, is just a fancy way of saying 'a robot that can learn and think.' There are *a ton* of different kinds of AI, so I'll keep it simple and talk about *one kind* of AI you'll be using for this tournament, an LLM.
 
-  *SnakeBot coils proudly, flicking its tail like a salute.*
+  *SnakeBot pauses for dramatic effect*
 
-  **SnakeBot**\
-  Think of it this way: if you had a robot buddy who could cook anything, you’d still have to tell it what recipe to make. The clearer the recipe, the better the dish. That’s how I work too—you give me the strategy, and I turn it into code.
+  **SnakeBot:** "LLM is short for **Large Language Model**. It's like a super smart robot brain that's read tons of books and learns all sorts of patterns. They can write code, tell stories, even create images! But here’s the catch, it doesn't actually know \*what to do \*with all that knowledge. This is where *prompts* come in. A **prompt** is just your instructions. It's how you talk to AI.
+
+  *SnakeBot takes off his glasses*
+
+  **SnakeBot:** "Think of it this way: if you had a robot buddy who could cook anything, you’d still have to tell it what recipe to make. The clearer the recipe, the better the dish. That’s how I work too, you give me the strategy, and I turn it into code."
+
+  \<Insert BE CAREFUL of bad output, or maybe in next chapter>
+
+  &#x20;
 
   *SnakeBot straightens up, energy buzzing through its coils.*
 
