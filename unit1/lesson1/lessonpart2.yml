@@ -20,14 +20,14 @@ content: |
 
   **SnakeBot:** "Think of it this way: if you had a robot buddy who could cook anything, you’d still have to tell it what recipe to make. The clearer the recipe, the better the dish. That’s how I work too, you give me the strategy, and I turn it into code."
 
-  \<Insert BE CAREFUL of bad output, or maybe in next chapter>
+  \<Insert BE CAREFUL of bad output>
 
   &#x20;
 
   *SnakeBot straightens up, energy buzzing through its coils.*
 
   **SnakeBot**\
-  Alright, enough talk, time to slither into the training arena!
+  Alright, enough talk, let's start prompting me in the training arena!
 questionGroups:
   - id: "1"
     questions:
