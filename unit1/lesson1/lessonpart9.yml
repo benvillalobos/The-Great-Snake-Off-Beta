@@ -37,6 +37,3 @@ content: >+
 
   > * **Win the match** by winning 3 rounds
 
-showEditor: true
-editors:
-  - course1/unit1/lesson1/lessonpart9/failed.md
