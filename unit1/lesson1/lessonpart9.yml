@@ -2,16 +2,21 @@
 id: lessonpart9
 title: The Winner's Circle
 content: |+
+  ***
+
+  <br />
+
   Huzzah man you did it!
 
   > \[!TIP]
   > Slither Slam Tournament Rules
   > Slither Slam is based on the classic Snake game. The rules are:
-  >* Eat food to grow
-  * Avoid running into walls
-  * Avoid running into yourself
-  * Avoid running into enemy snakes
-  * Victory goes to the last snake standing!
+  >
+  > * Eat food to grow
+  > * Avoid running into walls
+  > * Avoid running into yourself
+  > * Avoid running into enemy snakes
+  > * Victory goes to the last snake standing!
 
 showEditor: true
 editors:
