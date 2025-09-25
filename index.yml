@@ -384,13 +384,85 @@ files:
 
       ```"
   - path: course1/player-ai.js
-    content: "function playerAI(enemy) {\r
+    content: "function playerAI(player) {\r
 
-      \    return Direction.RIGHT;\r
+      \  // Strategy: Rotate randomly between multiple strategies every N
+      ticks\r
 
-      }\r
+      \  const TICKS_PER_STRATEGY = 50; // configurable tick duration\r
 
-      \r\n"
+      \  if (!player.strategyTick) {\r
+
+      \    player.strategyTick = 0;\r
+
+      \    player.currentStrategy = 0;\r
+
+      \  }\r
+
+      \r
+
+      \  player.strategyTick++;\r
+
+      \r
+
+      \  // Change strategy after TICKS_PER_STRATEGY\r
+
+      \  if (player.strategyTick >= TICKS_PER_STRATEGY) {\r
+
+      \    player.strategyTick = 0;\r
+
+      \    // Randomly pick one of the strategies (0 = chase food, 1 = chase
+      enemy, 2 = random)\r
+
+      \    player.currentStrategy = Math.floor(Math.random() * 3);\r
+
+      \  }\r
+
+      \r
+
+      \  let direction = player.currentDirection();\r
+
+      \r
+
+      \  // Strategy 0: Chase after closest food\r
+
+      \  if (player.currentStrategy === 0) {\r
+
+      \    direction = player.towardsClosestFood();\r
+
+      \    console.log(\"Going after food\");\r
+
+      \  }\r
+
+      \r
+
+      \  // Strategy 1: Chase after the enemy\r
+
+      \  if (player.currentStrategy === 1) {\r
+
+      \    direction = player.towardsEnemy();\r
+
+      \    console.log(\"Going after enemy\");\r
+
+      \  }\r
+
+      \r
+
+      \  // Strategy 2: Move randomly in a safe direction\r
+
+      \  if (player.currentStrategy === 2) {\r
+
+      \    direction = player.randomSafeDirection();\r
+
+      \    console.log(\"Going random\");\r
+
+      \  }\r
+
+      \r
+
+      \  return direction;\r
+
+      }\r\n"
   - path: course1/snake.js
     content: "class Snake {\r
 
@@ -1421,55 +1493,71 @@ files:
 
       </html>\r\n"
   - path: course1/unit1/lesson1/lessonpart7/enemy-ai.js
-    content: "// Eat safe food when it is within 4 spaces,\r
+    content: "function enemyAI(player) {\r
 
-      // otherwise move at random.\r
+      \  // Strategy: Rotate randomly between multiple strategies every N
+      ticks\r
 
-      function enemyAI(enemy) { \r
+      \  const TICKS_PER_STRATEGY = 100; // configurable tick duration\r
 
-      \  let direction = enemy.currentDirection();\r
+      \  if (!player.strategyTick) {\r
 
-      \r
+      \    player.strategyTick = 0;\r
 
-      \  const head = enemy.head();\r
-
-      \  const allFoods = game.foods;\r
-
-      \r
-
-      \  let closestSafeFood = null;\r
-
-      \  let minDistanceToSafeFood = Infinity;\r
-
-      \r
-
-      \  for (const foodItem of allFoods) {\r
-
-      \    if (foodItem.type !== 'poison') {\r
-
-      \      const distance = enemy.distanceTo(foodItem);\r
-
-      \      if (distance < minDistanceToSafeFood) {\r
-
-      \        minDistanceToSafeFood = distance;\r
-
-      \        closestSafeFood = foodItem;\r
-
-      \      }\r
-
-      \    }\r
+      \    player.currentStrategy = 0;\r
 
       \  }\r
 
       \r
 
-      \  if (closestSafeFood && minDistanceToSafeFood <= 4) {\r
+      \  player.strategyTick++;\r
 
-      \    direction = enemy.towards(closestSafeFood);\r
+      \r
 
-      \  } else {\r
+      \  // Change strategy after TICKS_PER_STRATEGY\r
 
-      \    direction = enemy.randomSafeDirection();\r
+      \  if (player.strategyTick >= TICKS_PER_STRATEGY) {\r
+
+      \    player.strategyTick = 0;\r
+
+      \    // Randomly pick one of the strategies (0 = chase food, 1 = chase
+      enemy, 2 = random)\r
+
+      \    player.currentStrategy = Math.floor(Math.random() * 3);\r
+
+      \  }\r
+
+      \r
+
+      \  let direction = player.currentDirection();\r
+
+      \r
+
+      \  // Strategy 0: Chase after closest food\r
+
+      \  if (player.currentStrategy === 0) {\r
+
+      \    direction = player.towardsClosestFood();\r
+
+      \  }\r
+
+      \r
+
+      \  // Strategy 1: Chase after the enemy\r
+
+      \  if (player.currentStrategy === 1) {\r
+
+      \    direction = player.towardsEnemy();\r
+
+      \  }\r
+
+      \r
+
+      \  // Strategy 2: Move randomly in a safe direction\r
+
+      \  if (player.currentStrategy === 2) {\r
+
+      \    direction = player.randomSafeDirection();\r
 
       \  }\r
 
@@ -6165,13 +6253,13 @@ files:
 
       const ENEMY_CONFIG = {\r
 
-      \  id: 'Venomancer',\r
+      \  id: 'Serpent Supreme',\r
 
       \  start: { x: 16, y: 10 },\r
 
       \  color: '#9333ea',\r
 
-      \  size: 3,\r
+      \  size: 5,\r
 
       \  direction: { x: -1, y: 0 },\r
 
